@@ -4,18 +4,20 @@ package com.game.entities.creatures;
 import java.awt.Graphics;
 
 import com.game.sprites.Animator;
-import com.game.sprites.Sprite;
 
 public class Player extends Creature
 {
 	
 	public Player(Animator anim, int x, int y) 
 	{
-		super(anim, x, y);
-		setXMagAcc(1);
-		setYMagAcc(1);
+		super(anim, 50, x, y);
+		setXMagAcc(2);
+		setYMagAcc(2);
 		setMaxXVel(10);
 		setMaxYVel(10);
+		setFriction(2);
+		
+		
 	}
 	
 	@Override
@@ -23,15 +25,14 @@ public class Player extends Creature
 	{
 		super.drawSprite(g);
 		
-		
 
 	}
 	
 	
 	
 	
-	public String getType()
+	public EntityType getType()
 	{
-		return "Player";
+		return EntityType.Player;
 	}
 }

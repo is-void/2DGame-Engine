@@ -3,6 +3,7 @@ package com.game.input;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 
+import com.game.*;
 import com.game.entities.EntityManager;
 import com.game.entities.creatures.Player;
 
@@ -10,10 +11,7 @@ import com.game.entities.creatures.Player;
 public class KeyInput extends KeyAdapter
 {
 	private Player player;
-	private boolean up = false;
-	private boolean down = false;
-	private boolean left = false;
-	private boolean right = false;
+	
 	
 	public KeyInput(Player p)
 	{
@@ -25,61 +23,46 @@ public class KeyInput extends KeyAdapter
 		
 		int key = e.getKeyCode();
 		
-		if(key == KeyEvent.VK_UP)
+		if(key == KeyEvent.VK_ESCAPE)
 		{
-			if(!player.getCanMoveUp())
-				player.setCanMoveUp(true);
-			else
-				player.setCanMoveUp(false);
+			if(Game.state == Game.State.RUNNING)
+			{
+				
+				Game.state = Game.State.PAUSED;
+			} else if(Game.state ==  Game.State.PAUSED)
+			{
+				Game.state = Game.State.RUNNING;
+			}
 		}
-		//UP pressed
+		
+		
+		//player.up pressed
 		if(key == KeyEvent.VK_W)
 		{
-			up = true;
+			player.up = true;
 		}
 		
-		//DOWN pressed	
+		//player.down pressed	
 		if(key == KeyEvent.VK_S)
 		{
-			down = true;	
+			player.down = true;	
 		}
 		
-		//RIGHT pressed	
+		//player.right pressed	
 		if(key == KeyEvent.VK_D)
 		{
-			right = true;	
+			player.right = true;	
 		}
 			
-		//LEFT pressed	
+		//player.left pressed	
 		if(key == KeyEvent.VK_A)
 		{
-			left = true;
+			player.left = true;
 		}
 		
-		if(up && down)
-			player.slowDownY();
-		else
-			if(up || down)
-			{
-				if(up)
-					player.moveUp(); 
-				if(down)
-					player.moveDown();
-			} else
-				player.slowDownY();
 		
-		if(left && right)
-			player.slowDownX();
-		else
-			if(left || right)
-			{
-				if(left)
-					player.moveLeft();
-				else if(right)
-					player.moveRight();
-			} else
-				player.slowDownX();
 		
+			
 	}
 	
 	public void keyReleased(KeyEvent e)
@@ -93,35 +76,32 @@ public class KeyInput extends KeyAdapter
 			else
 				EntityManager.showHitbox = false;
 		}
-		//UP released
+		//player.up released
+		
+		
 		if(key == KeyEvent.VK_W)
 		{
-			up = false;
+			player.up = false;
 		}
 		
-		//Down released
+		//player.down released
 		if (key ==  KeyEvent.VK_S)
 		{
-			down = false;
+			player.down = false;
 		}
 		
-		//LEFT released	
+		//player.left released	
 		if (key == KeyEvent.VK_A)
 		{
-			left = false;
+			player.left = false;
 		}
 		
-		//RIGHT released
+		//player.right released
 		if (key == KeyEvent.VK_D)
 		{
-			right = false;
+			player.right = false;
 		}
 		
-		if(!up && !down)
-			player.slowDownY(); 
-		
-		if(!left && !right)
-			player.slowDownX();  
 			
 	}
 }

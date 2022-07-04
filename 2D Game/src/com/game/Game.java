@@ -3,6 +3,7 @@ package com.game;
 import java.awt.Canvas;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.image.BufferStrategy;
 
@@ -13,6 +14,7 @@ import com.game.entities.creatures.Player;
 import com.game.input.KeyInput;
 import com.game.sprites.Animator;
 
+
 public class Game extends Canvas implements Runnable {
 	public static final int HEIGHT = 1000;
 	public static final int WIDTH = 1000;
@@ -22,9 +24,14 @@ public class Game extends Canvas implements Runnable {
 	public static EntityManager entityManager;
 	public Camera gameCamera;
 	public static Player player;
-	/**
-	 * 
-	 */
+	public static enum State
+	{
+		LOADING,
+		RUNNING,
+		PAUSED;
+	}
+	public static State state = State.LOADING;
+	
 	private static final long serialVersionUID = -20503614128161992L;
 
 	public Game() {
@@ -62,6 +69,7 @@ public class Game extends Canvas implements Runnable {
 		
 		IS_RUNNING = true;
 		gameThread.start();
+		state = State.RUNNING;
 	}
 
 	@Override
@@ -114,22 +122,56 @@ public class Game extends Canvas implements Runnable {
 
 		Graphics g = buffer.getDrawGraphics();
 		
-		
 		g.setColor(Color.white);
 		g.fillRect(0, 0, WIDTH, HEIGHT);
-		entityManager.renderEntities(g);
-		g.setColor(Color.green);
-		g.fillOval(WIDTH/2, HEIGHT/2, 4, 4);
+		
+		switch(state)
+		{
+			case LOADING :
+				g.setColor(Color.black);
+				g.drawString("Loading" , WIDTH/2 - 30, HEIGHT/2 -20);
+			case RUNNING :
+				entityManager.renderEntities(g);
+				entityManager.renderHealthBars(g);
+				break;
+				
+			case PAUSED :
+				entityManager.renderEntities(g);
+				
+				g.setColor(new Color(0, 0, 0, 100));
+				g.fillRect(0, 0, WIDTH, HEIGHT);
+				g.setFont(new Font("TimesRoman", Font.BOLD, 50)); 
+				g.setColor(Color.black);
+				g.drawString("PAUSED" , WIDTH/2 - 100, HEIGHT/2 -200);
+				break;
+				
+				
+		}
 		g.dispose();
 		buffer.show();
+		
 
 	}
 	
-	private void update() {
+	private void update() {           
+	switch(state)
+	{
+	case LOADING :
+		break;
+
+	case RUNNING :
+
 		Animator.updateFrames();
 		entityManager.updateEntities();
+		entityManager.updateHealthBars();
 		gameCamera.updateCamera();
+		break;
 
+	case PAUSED : 
+		break;
+
+	}
+	
 	}
 	public static boolean inBetween(double val, double low, double high, boolean inclusive) {
 		if (inclusive) {

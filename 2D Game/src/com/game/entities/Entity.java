@@ -22,15 +22,28 @@ public abstract class Entity
 	private double xVel, yVel; // The actual velocity
 	private double xAcc, yAcc; //The actual acceleration
 	private double xMagAcc, yMagAcc; //MagAcc is the  magnitude of acceleration. Should only be a positive real number 
+	private double friction;
 	private boolean slowDownX, slowDownY;
+	
 	private Rectangle hitbox;
 	private Animator animator;
 	private boolean canMoveLeft = true, canMoveRight = true, canMoveUp = true, canMoveDown = true;
 	private Dimension origin;
-
+	
+	public boolean up, down, left, right;
 	
 	
-	private boolean isRendered;
+	public enum EntityType
+	{
+		Creature,
+		Player,
+		Tile;
+	}
+	
+	EntityType type;
+	
+	
+	private boolean isRendered = false;
 	
 	public Entity(Animator anim, int x, int y)
 	{
@@ -40,6 +53,7 @@ public abstract class Entity
 		this.y = y;
 		origin = new Dimension(x, y);
 		anim.setOwner(this);
+		
 	}
 	
 	public boolean nearCreature(Creature c)
@@ -73,16 +87,11 @@ public abstract class Entity
 			
 	}
 	
-	public void render(Graphics g)
-	{
-		//drawHitbox(g);
-		drawSprite(g);
-		
-	}
+	
 	public void update()
 	{
 		getAnimator().update();
-		
+		System.out.println("XVel  = " + xVel + "\nYVel = " + yVel);
 		if(xVel > 0) 
 			if(!canMoveRight)
 				xVel = 0;
@@ -110,18 +119,43 @@ public abstract class Entity
 	
 	public void prepareMovement()
 	{
+		if(up ^ down)
+		{
+			if(up)
+				moveUp();
+			
+			if(down)
+				moveDown();
+		} else
+		{
+			slowDownY = true;
+		}
+		
+		if(left ^ right)
+		{
+			if(left)
+				moveLeft();
+			if(right)
+				moveRight();
+		} else
+		{
+			slowDownX = true;
+		}
+		
 		if(slowDownX)
 			slowDownX();
 		if(slowDownY)
 			slowDownY();
+		
 		accelerate();
+		
 		
 		
 	}
 	
 	public void checkLoaded()
 	{
-		if(Game.dist(this.x, this.y, Camera.X, Camera.Y) < Game.WIDTH)
+		if(Game.dist(this.x, this.y, Camera.X, Camera.Y) < Game.WIDTH/2)
 		{
 			isRendered = true;
 		} else
@@ -223,69 +257,65 @@ public abstract class Entity
 	
 	public void slowDownX()
 	{
+		
 		slowDownX = true;
+		
 		if(xVel > 0)
 		{
-			if(xVel - xAcc > 0)
-				xVel -= xAcc;
+			if(xVel - friction > 0)
+				xAcc = friction * -1;
 			else
-				xVel = 0;
+				xAcc = xVel * -1;
 		} else if (xVel < 0)
 		{
-			if(Math.abs(xVel) - xMagAcc > 0)
-				xVel += xMagAcc;
+			
+			if(xVel + friction < 0)
+				xAcc = friction;
 			else
-				xVel = 0;
-		}
+				xAcc = xVel * -1;
+		} else
+			xAcc = 0;
 	}
 	
 	public void slowDownY()
 	{
 		slowDownY = true;
+		
 		if(yVel > 0)
 		{
-			if(yVel - yMagAcc > 0)
-				yVel -= yMagAcc;
+			if(yVel - friction > 0)
+				yAcc = friction * -1;
 			else
-				yVel = 0;
+				yAcc = yVel * -1;
 		} else if (yVel < 0)
 		{
-			if(Math.abs(yVel) - yMagAcc > 0)
-				yVel += yMagAcc;
+			
+			if(yVel + friction < 0)
+				yAcc = friction;
 			else
-				yVel = 0;
-		}
+				yAcc = yVel * -1;
+		} else
+			yAcc = 0;
 	}
 	
 	private void accelerate()
 	{
-				
-		if(!slowDownX)
-			if(Math.abs(xVel) < maxXVel)
-			{
-				
-				if(xVel + xAcc < getMaxXVel())
-				{
-					xVel += xAcc; 
-				}
-				else if((xVel + xAcc) * -1 < getMaxXVel())
-					xVel += xAcc;
-				else
-					xVel = maxXVel;
-			}
 		
-		if(!slowDownY)
-			if(Math.abs(yVel) < maxYVel)
-			{
-				if(yVel + yAcc < getMaxYVel())
-				{
-					yVel += yAcc; 
-				}
-				else if((yVel + yAcc) * -1 < getMaxYVel())
-					yVel += yAcc;
-				else
-					yVel = maxYVel;
-			}
+		
+		
+		
+			
+		if(Math.abs(xVel + xAcc) <= Math.abs(getMaxXVel()))
+		{
+			xVel += xAcc; 
+		}
+		
+			
+		if(Math.abs(yVel + yAcc) <= Math.abs(getMaxYVel()))
+		{
+			yVel += yAcc; 
+		}
+		
 		
 	}
 
@@ -410,5 +440,15 @@ public abstract class Entity
 	}
 
 		
-	public abstract String getType();
+	public abstract EntityType getType();
+
+	public double getFriction() {
+		return friction;
+	}
+
+	public void setFriction(double friction) {
+		this.friction = friction;
+	}
+
+	
 }

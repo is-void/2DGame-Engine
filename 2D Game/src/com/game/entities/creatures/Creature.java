@@ -1,39 +1,58 @@
 package com.game.entities.creatures;
 
+import java.awt.Graphics;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.geom.Line2D;
 
 import com.game.Game;
+import com.game.display.ui.Bar;
+import com.game.display.ui.Bar.BarType;
 import com.game.entities.Entity;
 import com.game.entities.EntityManager;
 import com.game.entities.tiles.Tile;
 import com.game.sprites.Animator;
-import com.game.sprites.Sprite;
+
 
 public abstract class Creature extends Entity
 {
+	Bar healthBar;
+	private double health, maxHealth;
 	
 	
-	public Creature(Animator anim, int x, int y)
+	public Creature(Animator anim, double hp, int x, int y)
 	{
 		super(anim, x, y);
 		
-		
+		healthBar = new Bar(80, 10, this, BarType.HEALTH);
+		health = hp;
+		maxHealth = hp;
 	}
 	
 	
+	public void updateHealthBar()
+	{
+		healthBar.update();
+	}
+	
+	public void drawHealthBar(Graphics g)
+	{
+		healthBar.render(g);
+	}
 	
 	public void update()
 	{
 		
 		prepareMovement();
-		
+		heal(0.1);
 		checkCollsion();
 		super.update();
 	}
 	
-	
+	public void checkState()
+	{
+		
+	}
 	public void checkCollsion()
 	{
 		setCanMoveUp(true);
@@ -357,10 +376,46 @@ public abstract class Creature extends Entity
 			
 	}
 	
-	public String getType()
+	public EntityType getType()
 	{
-		return "Creature";
+		return EntityType.Creature;
 	}
 	
+	public double getHealth() {
+		return health;
+	}
 
+	public void setHealth(double hp) {
+		if(hp >= 0 && hp<=maxHealth)
+			health = hp;
+		else if(hp < 0)
+		{
+			health = 0;
+		}
+		
+	}
+
+	public double getMaxHealth() {
+		return maxHealth;
+	}
+
+	public void setMaxHealth(double maxHealth) {
+		this.maxHealth = maxHealth;
+	}
+	
+	public void damage(double dmg) {
+		health -= dmg;
+	}
+	
+	public void heal(double hp) {
+		if(health + hp <= maxHealth)
+			health += hp;
+		else
+			health = maxHealth;
+	}
+	
+	public void kill()
+	{
+		health = 0;
+	}
 }
