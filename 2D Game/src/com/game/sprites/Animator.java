@@ -41,7 +41,9 @@ public class Animator
 	public void update()
 	{
 		if(frameCounter / 30 == 2)
+		{
 			currentSprite.nextFrame();
+		}
 	}
 	
 	public void setOwner(Entity e)
