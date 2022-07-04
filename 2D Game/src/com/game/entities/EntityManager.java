@@ -25,13 +25,11 @@ public class EntityManager
 		entities.add(e);
 		switch(e.getType())
 		{
-		case Player:
-		case Creature :
+		case "Creature" :
 			creatures.add((Creature) e);
-		
 			break;
 		
-		case Tile :
+		case "Tile" :
 			tiles.add((Tile) e);
 		default :
 			break;
@@ -68,30 +66,16 @@ public class EntityManager
 	
 	public void updateEntities()
 	{
-		for(Entity e : entities)
-		{
-			e.checkLoaded();
-			if(e.isRendered())
+		//int count = 0;
+		if(entities.size() >= 1)
+			for(Entity e : entities)
 			{
-				e.update();
-				//count++;
+				e.checkLoaded();
+				if(e.isRendered())
+				{
+					e.update();
+					//count++;
+				}
 			}
-		}
-	}
-	
-	public void updateHealthBars()
-	{
-		for(Creature c : creatures)
-		{
-			c.updateHealthBar();
-		}
-	}
-	
-	public void renderHealthBars(Graphics g)
-	{
-		for(Creature c : creatures)
-		{
-			c.drawHealthBar(g);
-		}
 	}
 }

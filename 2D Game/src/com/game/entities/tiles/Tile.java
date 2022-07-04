@@ -20,9 +20,9 @@ public class Tile extends Entity
 		
 	}
 	
-	public EntityType getType()
+	public String getType()
 	{
-		return EntityType.Tile;
+		return "Tile";
 	}
 
 }
