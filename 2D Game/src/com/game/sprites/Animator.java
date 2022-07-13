@@ -14,18 +14,25 @@ public class Animator
 	
 	private int height, width;
 	public Sprite idleAnim;
-	private Sprite currentSprite; 
+	private Sprite sprite; 
 	private int index;
 	private Entity owner;
 	private static int frameCounter = 0;
-	
+	private boolean inAttackAnim;
 	
 	public Animator(Sprite spr)
 	{
 		
 		height = spr.height;
 		width = spr.width;
-		currentSprite = spr;
+		sprite = spr;
+	}
+	public Animator(Sprite spr, Entity owner)
+	{
+		
+		height = spr.height;
+		width = spr.width;
+		sprite = spr;
 		System.out.print(owner);
 	}
 	public static void updateFrames()
@@ -42,7 +49,7 @@ public class Animator
 	{
 		if(frameCounter / 30 == 2)
 		{
-			currentSprite.nextFrame();
+			sprite.nextFrame();
 		}
 	}
 	
@@ -53,19 +60,19 @@ public class Animator
 	public void draw(Graphics g)
 	{
 		
-		g.drawImage(getCurrentSprite().getCurrentFrame(), owner.getLocalX(), owner.getLocalY(), width, height, null);
+		g.drawImage(getSprite().getCurrentFrame(), owner.getLocalX(), owner.getLocalY(), width, height, null);
 		
 		
 		
 	}
 	public void setSprite(Sprite spr)
 	{
-		currentSprite = spr;
-		System.out.print("set Sprite");
+		sprite = spr;
+		
 	}
 	
-	public Sprite getCurrentSprite() {
-		return currentSprite;
+	public Sprite getSprite() {
+		return sprite;
 	}
 	
 	public int getHeight() 
@@ -76,5 +83,11 @@ public class Animator
 	public int getWidth()
 	{
 		return width;
+	}
+	
+	public Animator clone(Entity owner)
+	{
+		return new Animator(sprite, owner);
+		
 	}
 }

@@ -4,12 +4,14 @@ import java.awt.Graphics;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.geom.Line2D;
+import java.util.ArrayList;
 
+import com.game.ChunkManager;
 import com.game.Game;
 import com.game.display.ui.Bar;
 import com.game.display.ui.Bar.BarType;
 import com.game.entities.Entity;
-import com.game.entities.EntityManager;
+import com.game.entities.Chunk;
 import com.game.entities.tiles.Tile;
 import com.game.sprites.Animator;
 
@@ -18,7 +20,22 @@ public abstract class Creature extends Entity
 {
 	Bar healthBar;
 	private double health, maxHealth;
+	public ArrayList<Tile> nearbyTiles = new ArrayList<Tile>();
 	
+	public boolean displayHitbox = false;
+	
+	
+	enum CreatureState
+	{
+		IDLE,
+		SPAWN,
+		DEAD,
+		WALK,
+		WALK_ATTACK,
+		ATTACK;
+	}
+	
+	CreatureState state;
 	
 	public Creature(Animator anim, double hp, int x, int y)
 	{
@@ -27,8 +44,16 @@ public abstract class Creature extends Entity
 		healthBar = new Bar(80, 10, this, BarType.HEALTH);
 		health = hp;
 		maxHealth = hp;
+		isStatic = false;
+		hitboxXOffset = getAnimator().getWidth()/9;
+		hitboxYOffset = getAnimator().getHeight()/9;
+		creatureHitbox();
 	}
 	
+	private void creatureHitbox()
+	{
+		hitbox = new Rectangle(x + hitboxXOffset, y + hitboxYOffset, getAnimator().getWidth() - 2 * hitboxXOffset, getAnimator().getHeight() - 2 * hitboxYOffset);
+	}
 	
 	public void updateHealthBar()
 	{
@@ -40,9 +65,10 @@ public abstract class Creature extends Entity
 		healthBar.render(g);
 	}
 	
+	
 	public void update()
 	{
-		
+		checkState();
 		prepareMovement();
 		heal(0.1);
 		checkCollsion();
@@ -51,41 +77,59 @@ public abstract class Creature extends Entity
 	
 	public void checkState()
 	{
+		if(health <= 0)
+		{
+			state = CreatureState.DEAD;
+		}
+	}
+	
+	public void longUpdate()
+	{
+		ArrayList<Tile> temp = new ArrayList<Tile>();
+		for(Chunk c : ChunkManager.LoadedChunks)
+		{
+			for(Tile t : c.tiles)
+			{
+				if(t.nearCreature(this))
+				{
+					temp.add(t);
+					
+				}
+			}
+		}
+		nearbyTiles = temp;
 		
 	}
+	
 	public void checkCollsion()
 	{
 		setCanMoveUp(true);
 		setCanMoveDown(true);
 		setCanMoveRight(true);
 		setCanMoveLeft(true);
-		if(EntityManager.tiles.size() >= 1)
-		{
-			for(int e = 0; e < EntityManager.tiles.size(); e++)
-			{
-				if(EntityManager.tiles.get(e).nearCreature(this))
-				{
-					
-					collsionWithTile((Tile)EntityManager.tiles.get(e));
-				} 
-			}
-		}
-			
+		
+		
+		for(Tile t : nearbyTiles)
+			if(t.canCollide())
+				collsionWithTile(t);
+		
+		
 
 	}
 	
 	public void collsionWithTile(Tile e)
 	{
 		
-		Line2D.Double leftBound = new Line2D.Double(e.getHitbox().getMinX(), e.getHitbox().getMinY(), e.getHitbox().getMinX(), e.getHitbox().getMaxY());
-		Line2D.Double rightBound = new Line2D.Double(e.getHitbox().getMaxX(), e.getHitbox().getMinY(), e.getHitbox().getMaxX(), e.getHitbox().getMaxY());
-		Line2D.Double topBound = new Line2D.Double(e.getHitbox().getMinX(), e.getHitbox().getMinY(), e.getHitbox().getMaxX(), e.getHitbox().getMinY());
-		Line2D.Double bottomBound = new Line2D.Double(e.getHitbox().getMinX(), e.getHitbox().getMaxY(), e.getHitbox().getMaxX(), e.getHitbox().getMaxY());
+		System.out.print("checking collision");
+		Line2D.Double leftBound = new Line2D.Double(e.getHitbox().getMinX(), e.getHitbox().getMinY()+1, e.getHitbox().getMinX(), e.getHitbox().getMaxY()-1);
+		Line2D.Double rightBound = new Line2D.Double(e.getHitbox().getMaxX(), e.getHitbox().getMinY()+1, e.getHitbox().getMaxX(), e.getHitbox().getMaxY()-1);
+		Line2D.Double topBound = new Line2D.Double(e.getHitbox().getMinX()+1, e.getHitbox().getMinY(), e.getHitbox().getMaxX()-1, e.getHitbox().getMinY());
+		Line2D.Double bottomBound = new Line2D.Double(e.getHitbox().getMinX()+1, e.getHitbox().getMaxY(), e.getHitbox().getMaxX()-1, e.getHitbox().getMaxY());
 
 		
 		/*
 		//--> collsion
-		if(getHitbox().getMaxX() + getXVelocity() >= e.getHitbox().getMinX() && getHitbox().getMaxX()<= e.getHitbox().getMinX() && (Game.inBetween(getHitbox().getMinY(), e.getHitbox().getMinY(), e.getHitbox().getMaxY(), true) || Game.inBetween(getHitbox().getMaxY(), e.getHitbox().getMinY(), e.getHitbox().getMaxY(), true )))
+		if(this.hitbox.getMaxX() + getXVelocity() >= e.getHitbox().getMinX() && getHitbox().getMaxX()<= e.getHitbox().getMinX() && (Game.inBetween(this.hitbox.getMinY(), e.getHitbox().getMinY(), e.getHitbox().getMaxY(), true) || Game.inBetween(this.hitbox.getMaxY(), e.getHitbox().getMinY(), e.getHitbox().getMaxY(), true )))
 		{
 			setCanMoveRight(false); 
 			
@@ -93,29 +137,29 @@ public abstract class Creature extends Entity
 		}
 		
 		//<-- collsion
-		if(getHitbox().getMinX() + getXVelocity() <= e.getHitbox().getMaxX() && getHitbox().getMinX()>= e.getHitbox().getMaxX() && (Game.inBetween(getHitbox().getMinY(), e.getHitbox().getMinY(), e.getHitbox().getMaxY(), true) || Game.inBetween(getHitbox().getMaxY(), e.getHitbox().getMinY(), e.getHitbox().getMaxY(), true )))
+		if(this.hitbox.getMinX() + getXVelocity() <= e.getHitbox().getMaxX() && getHitbox().getMinX()>= e.getHitbox().getMaxX() && (Game.inBetween(this.hitbox.getMinY(), e.getHitbox().getMinY(), e.getHitbox().getMaxY(), true) || Game.inBetween(this.hitbox.getMaxY(), e.getHitbox().getMinY(), e.getHitbox().getMaxY(), true )))
 		{
 			setCanMoveLeft(false); 
 			setX(e.getX() + e.getHitbox().width+1);
 		}
 		
 		
-		if(getHitbox().getMaxY() + getYVelocity() >= e.getHitbox().getMinY() && getHitbox().getMaxY()<= e.getHitbox().getMinY() && (Game.inBetween(getHitbox().getMinX(), e.getHitbox().getMinX(), e.getHitbox().getMaxX(), true) || Game.inBetween(getHitbox().getMaxX(), e.getHitbox().getMinX(), e.getHitbox().getMaxX(), true )))
+		if(this.hitbox.getMaxY() + getYVelocity() >= e.getHitbox().getMinY() && getHitbox().getMaxY()<= e.getHitbox().getMinY() && (Game.inBetween(this.hitbox.getMinX(), e.getHitbox().getMinX(), e.getHitbox().getMaxX(), true) || Game.inBetween(this.hitbox.getMaxX(), e.getHitbox().getMinX(), e.getHitbox().getMaxX(), true )))
 		{
 			
 			setCanMoveDown(false); 
 			setY(e.getY() - getHitbox().height-1);
 		}
 		
-		if(getHitbox().getMinY() + getYVelocity() <= e.getHitbox().getMaxY() && getHitbox().getMinY()>= e.getHitbox().getMaxY() && (Game.inBetween(getHitbox().getMinX(), e.getHitbox().getMinX(), e.getHitbox().getMaxX(), true) || Game.inBetween(getHitbox().getMaxX(), e.getHitbox().getMinX(), e.getHitbox().getMaxX(), true )))
+		if(this.hitbox.getMinY() + getYVelocity() <= e.getHitbox().getMaxY() && getHitbox().getMinY()>= e.getHitbox().getMaxY() && (Game.inBetween(this.hitbox.getMinX(), e.getHitbox().getMinX(), e.getHitbox().getMaxX(), true) || Game.inBetween(this.hitbox.getMaxX(), e.getHitbox().getMinX(), e.getHitbox().getMaxX(), true )))
 		{
 			setCanMoveUp(false); 
 			setY(e.getY() + e.getHitbox().height+1);
 		}
 		*/
-		Rectangle testHitbox = new Rectangle(getLocalX(), getLocalY(), (int) getHitbox().getWidth(), (int) getHitbox().getHeight());
+		Rectangle testHitbox = new Rectangle(localX, localY, (int) getHitbox().getWidth(), (int) getHitbox().getHeight());
 		
-		testHitbox.setLocation((int) (getLocalX() + getXVelocity()), getLocalY());
+		testHitbox.setLocation((int) (localX + getXVelocity()), localY);
 		/*
 		if(testHitbox.intersects(e.getHitbox()))
 		{
@@ -131,7 +175,7 @@ public abstract class Creature extends Entity
 			}
 		}
 		
-		testHitbox.setLocation(getLocalX(), (int) (getLocalY() + getYVelocity()));
+		testHitbox.setLocation(localX, (int) (localY + getYVelocity()));
 		
 		if(testHitbox.intersects(e.getHitbox()))
 		{
@@ -146,36 +190,37 @@ public abstract class Creature extends Entity
 			}
 		}
 		*/
-
-		if((Game.inBetween(getHitbox().getMinY(), e.getHitbox().getMinY(), e.getHitbox().getMaxY(), true) || Game.inBetween(getHitbox().getMaxY(), e.getHitbox().getMinY(), e.getHitbox().getMaxY(), true )))
+		/*
+		
+		if((Game.inBetween(this.hitbox.getMinY(), e.getHitbox().getMinY(), e.getHitbox().getMaxY(), true) || Game.inBetween(this.hitbox.getMaxY(), e.getHitbox().getMinY(), e.getHitbox().getMaxY(), true )))
 		{
-			if(Game.inBetween(getHitbox().getMaxX(), e.getHitbox().getMinX(), e.getHitbox().getMinX()+1, true))
+			if(Game.inBetween(this.hitbox.getMaxX(), e.getHitbox().getMinX(), e.getHitbox().getMinX()+1, true))
 			{
 				setCanMoveRight(false);
 			}
 			
-			if(Game.inBetween(getHitbox().getMinX(), e.getHitbox().getMaxX(), e.getHitbox().getMaxX()+1, true))
+			if(Game.inBetween(this.hitbox.getMinX(), e.getHitbox().getMaxX(), e.getHitbox().getMaxX()+1, true))
 			{
 				setCanMoveLeft(false);
-			}
-			
+			}			
 			
 		}
-		if((Game.inBetween(getHitbox().getMinX(), e.getHitbox().getMinX(), e.getHitbox().getMaxX(), true) || Game.inBetween(getHitbox().getMaxX(), e.getHitbox().getMinX(), e.getHitbox().getMaxX(), true )))
+		
+		if((Game.inBetween(this.hitbox.getMinX(), e.getHitbox().getMinX(), e.getHitbox().getMaxX(), true) || Game.inBetween(this.hitbox.getMaxX(), e.getHitbox().getMinX(), e.getHitbox().getMaxX(), true )))
 		{
-			if(Game.inBetween(getHitbox().getMaxY(), e.getHitbox().getMinY(), e.getHitbox().getMinY()+1, true))
+			if(Game.inBetween(this.hitbox.getMaxY(), e.getHitbox().getMinY(), e.getHitbox().getMinY()+1, true))
 			{
 				setCanMoveDown(false);
 				
 			}
 			
-			if(Game.inBetween(getHitbox().getMinY(), e.getHitbox().getMaxY(), e.getHitbox().getMaxY()+1, true))
+			if(Game.inBetween(this.hitbox.getMinY(), e.getHitbox().getMaxY(), e.getHitbox().getMaxY()+1, true))
 			{
 				setCanMoveUp(false);
 				
 			}
 		}
-		
+		*/
 		
 		
 		
@@ -185,7 +230,7 @@ public abstract class Creature extends Entity
 		boolean u;
 		boolean d;
 		u = d = false;
-		if(e.getHitbox().contains(getHitbox()))
+		if(e.getHitbox().contains(this.hitbox))
 		{
 			setX(e.getX() + e.getHitbox().width+1);
 		}
@@ -202,7 +247,7 @@ public abstract class Creature extends Entity
 			r = true;
 		}
 		
-		testHitbox.setLocation(getLocalX(), (int) (getLocalY() + getYVelocity()));
+		testHitbox.setLocation(localX, (int) (localY + getYVelocity()));
 		
 		if(testHitbox.intersectsLine(topBound))
 		{
@@ -265,7 +310,7 @@ public abstract class Creature extends Entity
 				if(l)
 				{
 					System.out.print("leftSide hit top");
-					if(getHitbox().getMaxX() == e.getHitbox().getMinX() && getHitbox().getMaxY() == e.getHitbox().getMinY())
+					if(this.hitbox.getMaxX() == e.getHitbox().getMinX() && getHitbox().getMaxY() == e.getHitbox().getMinY())
 					{
 						setCanMoveDown(false);
 						setCanMoveRight(false);
@@ -277,7 +322,7 @@ public abstract class Creature extends Entity
 							
 					}
 					
-					if(getHitbox().getMaxX() + getXVelocity()-1 > e.getHitbox().getMinX()+1 && getHitbox().getMaxY() + getYVelocity()-1 > e.getHitbox().getMinY()+1)
+					if(this.hitbox.getMaxX() + getXVelocity()-1 > e.getHitbox().getMinX()+1 && getHitbox().getMaxY() + getYVelocity()-1 > e.getHitbox().getMinY()+1)
 					{
 						setCanMoveDown(false);
 						setCanMoveRight(false);
@@ -378,7 +423,7 @@ public abstract class Creature extends Entity
 	
 	public EntityType getType()
 	{
-		return EntityType.Creature;
+		return EntityType.CREATURE;
 	}
 	
 	public double getHealth() {

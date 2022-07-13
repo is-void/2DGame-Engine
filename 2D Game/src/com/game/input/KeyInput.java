@@ -4,7 +4,7 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 
 import com.game.*;
-import com.game.entities.EntityManager;
+import com.game.entities.Chunk;
 import com.game.entities.creatures.Player;
 
 
@@ -71,10 +71,10 @@ public class KeyInput extends KeyAdapter
 		int key = e.getKeyCode();
 		if(key == KeyEvent.VK_H)
 		{
-			if(EntityManager.showHitbox == false)
-				EntityManager.showHitbox = true;
+			if(Chunk.showHitbox == false)
+				Chunk.showHitbox = true;
 			else
-				EntityManager.showHitbox = false;
+				Chunk.showHitbox = false;
 		}
 		//player.up released
 		

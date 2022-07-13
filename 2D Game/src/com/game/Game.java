@@ -5,13 +5,22 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
+import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.image.BufferStrategy;
+import java.awt.image.BufferedImage;
+import java.util.ArrayList;
+import java.util.HashMap;
 
 import com.game.display.Camera;
 import com.game.display.Window;
-import com.game.entities.EntityManager;
+import com.game.entities.Chunk;
 import com.game.entities.creatures.Player;
+import com.game.entities.tiles.Tile;
+import com.game.gfx.ImageLoader;
 import com.game.input.KeyInput;
+import com.game.input.MouseInput;
+import com.game.input.MouseMovement;
 import com.game.sprites.Animator;
 
 
@@ -21,15 +30,22 @@ public class Game extends Canvas implements Runnable {
 	Dimension dimensions = new Dimension(WIDTH, HEIGHT);
 	public static boolean IS_RUNNING = false;
 	public Thread gameThread;
-	public static EntityManager entityManager;
 	public Camera gameCamera;
 	public static Player player;
+	BufferedImage cursor;
+	
+	static int slowUpdate = 0;
+	
+	
+	
 	public static enum State
 	{
 		LOADING,
 		RUNNING,
 		PAUSED;
 	}
+	
+	
 	public static State state = State.LOADING;
 	
 	private static final long serialVersionUID = -20503614128161992L;
@@ -43,33 +59,42 @@ public class Game extends Canvas implements Runnable {
 		new Window("2D Game", this);
 
 		this.addKeyListener(new KeyInput(player));
+		this.addMouseListener(new MouseInput(player));
+		this.addMouseMotionListener(new MouseMovement(player));
 		this.setFocusable(true);
-
+		
 	}
 
 	public static void main(String[] args) {
 		new Game();
 	}
-
+	
 	public void start() {
 		gameThread = new Thread(this);
-		entityManager = new EntityManager();
+		
 		
 		try {
 			Assets.initialize();
+			
 		} catch (CloneNotSupportedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-
-		gameCamera = new Camera(player);
-		gameCamera.changeFocus(player);
 		
-
+		gameCamera = new Camera(player);
+		
+		cursor = ImageLoader.loadImage("/textures/Cursor.png");
+		
+		
+		ChunkManager.checkLoadedChunks();
 		
 		IS_RUNNING = true;
-		gameThread.start();
 		state = State.RUNNING;
+		
+		//player.setLocation(new Point(ChunkManager.Chunks.get(0).origin.x + 10, ChunkManager.Chunks.get(0).origin.y + 10));
+		gameThread.start();
+		
+		
 	}
 
 	@Override
@@ -91,7 +116,9 @@ public class Game extends Canvas implements Runnable {
 				delta--;
 			}
 			if (IS_RUNNING)
+			{
 				render();
+			}
 			frames++;
 
 			if (System.currentTimeMillis() - timer > 1000) {
@@ -131,12 +158,12 @@ public class Game extends Canvas implements Runnable {
 				g.setColor(Color.black);
 				g.drawString("Loading" , WIDTH/2 - 30, HEIGHT/2 -20);
 			case RUNNING :
-				entityManager.renderEntities(g);
-				entityManager.renderHealthBars(g);
+				renderProccess(g);
 				break;
 				
 			case PAUSED :
-				entityManager.renderEntities(g);
+				
+				renderProccess(g);
 				
 				g.setColor(new Color(0, 0, 0, 100));
 				g.fillRect(0, 0, WIDTH, HEIGHT);
@@ -147,13 +174,22 @@ public class Game extends Canvas implements Runnable {
 				
 				
 		}
+		drawCursor(g);
 		g.dispose();
 		buffer.show();
 		
 
 	}
 	
-	private void update() {           
+	private void update() {
+	slowUpdate++;
+	
+	if(slowUpdate == 60)
+	{
+		ChunkManager.longUpdateChunks();
+		player.longUpdate();
+		slowUpdate = 0;
+	}
 	switch(state)
 	{
 	case LOADING :
@@ -162,8 +198,9 @@ public class Game extends Canvas implements Runnable {
 	case RUNNING :
 
 		Animator.updateFrames();
-		entityManager.updateEntities();
-		entityManager.updateHealthBars();
+		ChunkManager.updateChunks();
+		
+		player.update();
 		gameCamera.updateCamera();
 		break;
 
@@ -173,6 +210,37 @@ public class Game extends Canvas implements Runnable {
 	}
 	
 	}
+	private void renderPlayer(Graphics g)
+	{
+		Game.player.drawSprite(g);
+		if(player.displayHitbox)
+			player.drawHitbox(g);
+		if(player.getHitbox().contains(new Point(player.mouseX, player.mouseY)))
+			player.drawHitbox(g);
+		
+		for(Tile t : Game.player.nearbyTiles)
+		{
+			if(t.canCollide())
+			{
+				t.drawHitbox(g);
+			}
+		}
+	}
+	private void renderProccess(Graphics g)
+	{
+		ChunkManager.renderTiles(g);
+		renderPlayer(g);
+		ChunkManager.renderCreatures(g);
+		ChunkManager.renderGUI(g);
+		
+	}
+	
+	
+	private void drawCursor(Graphics g)
+	{
+		g.drawImage(cursor, player.mouseX-cursor.getWidth()/2, player.mouseY-cursor.getHeight()/2, null);
+	}
+	
 	public static boolean inBetween(double val, double low, double high, boolean inclusive) {
 		if (inclusive) {
 			if (val >= low && val <= high)
@@ -181,6 +249,18 @@ public class Game extends Canvas implements Runnable {
 				return false;
 		} else if (val > low && val < high)
 			return true;
+		return false;
+	}
+	
+	public static boolean inBetween(Point val, Point low, Point high) 
+	{
+		
+		Rectangle rect = new Rectangle(low);
+		rect.add(high);
+		if(rect.contains(val))
+		{
+			return true;
+		}
 		return false;
 	}
 
@@ -205,9 +285,10 @@ public class Game extends Canvas implements Runnable {
 		
 	}
 	
-	public static double dist(Dimension d1, Dimension d2)
+	
+	public static double dist(Point d1, Point d2)
 	{
-		return Math.sqrt(Math.pow(d1.width-d2.width, 2) + Math.pow(d1.height-d2.height, 2));
+		return d1.distance(d2);
 		
 	}
 }

@@ -3,41 +3,44 @@ package com.game.entities;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
+import java.awt.Point;
 import java.awt.Rectangle;
 
 import com.game.Game;
 import com.game.display.Camera;
 import com.game.entities.creatures.Creature;
 import com.game.sprites.Animator;
-import com.game.sprites.Sprite;
 
 public abstract class Entity 
 {
 	
-	private int x, y;  //Game coordinates
-	private int localX; //Screen Location x
-	private int localY; //Screen location Y
-	private double maxXVel;  //The maximum velocity
-	private double maxYVel;
-	private double xVel, yVel; // The actual velocity
-	private double xAcc, yAcc; //The actual acceleration
-	private double xMagAcc, yMagAcc; //MagAcc is the  magnitude of acceleration. Should only be a positive real number 
-	private double friction;
-	private boolean slowDownX, slowDownY;
+	protected int x;  //Game coordinates
+	protected int y;
+	protected int localX; //Screen Location x
+	protected int localY; //Screen location Y
+	protected double maxXVel;  //The maximum velocity
+	protected double maxYVel;
+	protected double xVel, yVel; // The actual velocity
+	protected double xAcc, yAcc; //The actual acceleration
+	protected double xMagAcc, yMagAcc; //MagAcc is the  magnitude of acceleration. Should only be a positive real number 
+	protected double friction;
+	protected boolean slowDownX, slowDownY;
 	
-	private Rectangle hitbox;
+	protected Rectangle hitbox;
 	private Animator animator;
 	private boolean canMoveLeft = true, canMoveRight = true, canMoveUp = true, canMoveDown = true;
-	private Dimension origin;
-	
+	private Point origin;
+	private boolean canCollide;
 	public boolean up, down, left, right;
-	
+	public boolean isStatic;
+	public Chunk chunk;
+	public int hitboxXOffset, hitboxYOffset;
 	
 	public enum EntityType
 	{
-		Creature,
-		Player,
-		Tile;
+		CREATURE,
+		PLAYER,
+		TILE;
 	}
 	
 	EntityType type;
@@ -45,20 +48,49 @@ public abstract class Entity
 	
 	private boolean isRendered = false;
 	
+	public Entity(Animator anim, boolean col)
+	{
+		animator = anim;
+		defautHitbox();
+		anim.setOwner(this);
+		canCollide = col;
+		x = 0;
+		y = 0;
+		
+	}
 	public Entity(Animator anim, int x, int y)
 	{
 		animator = anim;
 		defautHitbox();
 		this.x = x;
 		this.y = y;
-		origin = new Dimension(x, y);
+		origin = new Point(x, y);
 		anim.setOwner(this);
-		
+		canCollide = false;
+	}
+	public Chunk getChunk()
+	{
+		return chunk;
+	}
+	
+	public void setChunk(Chunk c)
+	{
+		chunk = c;
+	}
+	public Entity(Animator anim, int x, int y, boolean coll)
+	{
+		animator = anim;
+		defautHitbox();
+		this.x = x;
+		this.y = y;
+		origin = new Point(x, y);
+		anim.setOwner(this);
+		canCollide = coll;
 	}
 	
 	public boolean nearCreature(Creature c)
 	{
-		if(Game.dist(new Dimension(x, y), c.getOrigin()) <= 200)
+		if(Game.dist(origin, c.getOrigin()) <= 500)
 		{
 			return true;
 		}
@@ -68,12 +100,12 @@ public abstract class Entity
 	
 	private void defautHitbox()
 	{
-		hitbox = new Rectangle(x, y, animator.getHeight(), animator.getWidth());
+		hitbox = new Rectangle(x, y, animator.getWidth(), animator.getHeight());
 	}
 	public void drawHitbox(Graphics g)
 	{
 		g.setColor(Color.red);
-		g.drawRect(getHitbox().x, getHitbox().y, getHitbox().width, getHitbox().height);
+		g.drawRect(getHitbox().x + hitboxXOffset, getHitbox().y + hitboxYOffset, getHitbox().width - 2*hitboxXOffset, getHitbox().height - 2 * hitboxYOffset);
 		
 	}
 	
@@ -81,8 +113,8 @@ public abstract class Entity
 	{
 			localX = Game.WIDTH/2 - (Camera.X-x);
 			localY = Game.HEIGHT/2 - (Camera.Y-y);
-			hitbox.x = localX;
-			hitbox.y = localY;
+			hitbox.x = localX + hitboxXOffset;
+			hitbox.y = localY + hitboxYOffset;
 			animator.draw(g);
 			
 	}
@@ -91,27 +123,29 @@ public abstract class Entity
 	public void update()
 	{
 		getAnimator().update();
-		System.out.println("XVel  = " + xVel + "\nYVel = " + yVel);
-		if(xVel > 0) 
-			if(!canMoveRight)
-				xVel = 0;
-		
-		if(xVel < 0)
-			if(!canMoveLeft)
-				xVel = 0;
+		if(!isStatic)
+		{
+			if(xVel > 0) 
+				if(!canMoveRight)
+					xVel = 0;
 			
+			if(xVel < 0)
+				if(!canMoveLeft)
+					xVel = 0;
+				
+			
+			if(yVel < 0)
+				if(!canMoveUp)
+					yVel = 0;
+			
+			if(yVel > 0)
+				if(!canMoveDown)
+					yVel = 0;
+	
+			x += xVel;
+			y += yVel;
 		
-		if(yVel < 0)
-			if(!canMoveUp)
-				yVel = 0;
-		
-		if(yVel > 0)
-			if(!canMoveDown)
-				yVel = 0;
-
-		x += xVel;
-		y += yVel;
-		
+		}
 		
 		setOrigin(getX()+getAnimator().getWidth()/2, getY() + getAnimator().getHeight()/2);
 		
@@ -155,7 +189,7 @@ public abstract class Entity
 	
 	public void checkLoaded()
 	{
-		if(Game.dist(this.x, this.y, Camera.X, Camera.Y) < Game.WIDTH/2)
+		if(Game.dist(origin.x, origin.y, Camera.X, Camera.Y) < Game.WIDTH/2)
 		{
 			isRendered = true;
 		} else
@@ -167,15 +201,15 @@ public abstract class Entity
 	
 	public void setOrigin(int x, int y)
 	{
-		origin.setSize(x, y);
+		origin.setLocation(x, y);
 	}
 	
-	public Dimension getOrigin()
+	public Point getOrigin()
 	{
 		if(origin != null)
 			return origin;
 		else
-			return new Dimension(getX(), getY());
+			return new Point(getX(), getY());
 	}
 	
 	public boolean isRendered()
@@ -217,6 +251,12 @@ public abstract class Entity
 	
 	public void setY(double y) {
 		this.y = (int)y;
+	}
+	
+	public void setLocation(Point p)
+	{
+		x = p.x;
+		y = p.y;
 	}
 	public void moveUp()
 	{
@@ -450,5 +490,13 @@ public abstract class Entity
 		this.friction = friction;
 	}
 
+	public void doCollision(boolean val)
+	{
+		canCollide = val;
+	}
 	
+	public boolean canCollide()
+	{
+		return canCollide;
+	}
 }

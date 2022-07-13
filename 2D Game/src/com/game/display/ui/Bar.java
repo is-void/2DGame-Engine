@@ -46,6 +46,8 @@ public class Bar
 				x = target.getLocalX();
 				y = target.getLocalY();
 			}
+		default:
+			break;
 			
 		}
 	}
