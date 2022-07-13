@@ -7,6 +7,7 @@ A basic 2D game Engine including :
 -An animation System
 -A Sprite system.
 -A tile collison system.
+-A Chunk Loading System.
 
 Future additions
 -A Game State system
