@@ -2,10 +2,10 @@ package com.game.sprites;
 
 
 import java.awt.Graphics;
-import java.awt.image.BufferedImage;
+import java.util.ArrayList;
 
+import com.game.display.Camera;
 import com.game.entities.Entity;
-import com.game.gfx.ImageLoader;
 
 
 
@@ -14,11 +14,14 @@ public class Animator
 	
 	private int height, width;
 	public Sprite idleAnim;
-	private Sprite sprite; 
+	public Sprite sprite; 
 	private int index;
 	private Entity owner;
 	private static int frameCounter = 0;
 	private boolean inAttackAnim;
+	public int frameRate = 10;
+	public ArrayList<Sprite> overlays = new ArrayList<Sprite>();
+	public int maxOverlayAmount = 4;
 	
 	public Animator(Sprite spr)
 	{
@@ -47,10 +50,11 @@ public class Animator
 	}
 	public void update()
 	{
-		if(frameCounter / 30 == 2)
-		{
-			sprite.nextFrame();
-		}
+		if(sprite.sprite.length > 1)
+			if(frameCounter / frameRate == 60 / frameRate)
+			{
+				sprite.nextFrame();
+			}
 	}
 	
 	public void setOwner(Entity e)
@@ -60,11 +64,24 @@ public class Animator
 	public void draw(Graphics g)
 	{
 		
-		g.drawImage(getSprite().getCurrentFrame(), owner.getLocalX(), owner.getLocalY(), width, height, null);
 		
+		g.drawImage(getSprite().getCurrentFrame(), owner.getLocalX(), (int) owner.getLocalY(), (int) Math.ceil(width * Camera.zoom),   (int) (Math.ceil(height * Camera.zoom)), null);
+		for(int s = overlays.size()-1; s > -1; s--)
+		{
+			g.drawImage(overlays.get(s).getCurrentFrame(), owner.getLocalX(), (int) owner.getLocalY(), (int) Math.ceil(width * Camera.zoom),   (int) (Math.ceil(height * Camera.zoom)), null);
+		}
 		
 		
 	}
+	
+	public void addOverlay(Sprite spr)
+	{
+		if(maxOverlayAmount > overlays.size())
+		{
+			overlays.add(spr);
+		}
+	}
+	
 	public void setSprite(Sprite spr)
 	{
 		sprite = spr;

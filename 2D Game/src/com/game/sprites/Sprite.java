@@ -6,35 +6,35 @@ public class Sprite implements Cloneable
 {
 	int currentFrame;
 	BufferedImage[] sprite;
-	String type;
+	public String name;
 	int width =32;
 	int height = 32;
 	
-	public Sprite(BufferedImage[] sprite, String type, int w, int h)
+	public Sprite(BufferedImage[] sprite, String name, int w, int h)
 	{
 		this.sprite = sprite;
 		currentFrame = 0;
-		this.type = type;
+		this.name = name;
 		width = w;
 		height = h;
 	}
-	
+	/*
 	public Sprite(BufferedImage[] sprite, int w, int h)
 	{
 		this.sprite = sprite;
 		currentFrame = 0;
-		this.type = "static tile";
+		this.name = "static tile";
 		width = w;
 		height = h;
 	}
-	
+	*/
 
 	public Sprite() 
 	{
 		sprite = new BufferedImage[1];
 		sprite[0] = new BufferedImage(width, height, BufferedImage.TYPE_4BYTE_ABGR);
 		currentFrame = 0;
-		type = "air";
+		name = "invisible";
 		
 	}
 

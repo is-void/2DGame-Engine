@@ -33,4 +33,24 @@ public class SpriteSheet {
 		 
 		 return frames;
 	}
+	
+	public BufferedImage[] getAnimation(int count, int row, int col, int width, int height)
+	{
+		BufferedImage frames[] = new BufferedImage[count];
+		try
+		 {
+			 
+			 for(int x = col; x <= (count-1) * width; x+=width )
+			 {
+				 frames[x/width] = crop(x, row * width, width, height);
+			 }
+			 
+		 }
+		 catch(Exception e)
+		 {
+			 e.printStackTrace();
+		 }
+		 
+		 return frames;
+	}
 }

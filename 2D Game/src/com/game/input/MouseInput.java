@@ -2,10 +2,9 @@ package com.game.input;
 
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-
 import javax.swing.SwingUtilities;
 
+import com.game.Game;
 import com.game.entities.creatures.Player;
 
 public class MouseInput extends MouseAdapter 
@@ -13,9 +12,9 @@ public class MouseInput extends MouseAdapter
 	
 	private Player player;
 	
-	public MouseInput(Player p)
+	public MouseInput(Game game)
 	{
-		player = p;
+		player = game.player;
 	}
 	
 	

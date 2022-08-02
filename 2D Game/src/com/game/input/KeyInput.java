@@ -4,18 +4,18 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 
 import com.game.*;
+import com.game.GameState.GAMESTATE;
 import com.game.entities.Chunk;
-import com.game.entities.creatures.Player;
 
 
 public class KeyInput extends KeyAdapter
 {
-	private Player player;
+	private Game game;
 	
 	
-	public KeyInput(Player p)
+	public KeyInput(Game game)
 	{
-		player = p;
+		this.game = game;
 	}
 	
 	public void keyPressed(KeyEvent e)
@@ -25,13 +25,13 @@ public class KeyInput extends KeyAdapter
 		
 		if(key == KeyEvent.VK_ESCAPE)
 		{
-			if(Game.state == Game.State.RUNNING)
+			if(game.state == GAMESTATE.RUNNING)
 			{
+				game.state = GAMESTATE.PAUSED;
 				
-				Game.state = Game.State.PAUSED;
-			} else if(Game.state ==  Game.State.PAUSED)
+			} else if(game.state == GAMESTATE.PAUSED)
 			{
-				Game.state = Game.State.RUNNING;
+				game.state = GAMESTATE.RUNNING;
 			}
 		}
 		
@@ -39,26 +39,33 @@ public class KeyInput extends KeyAdapter
 		//player.up pressed
 		if(key == KeyEvent.VK_W)
 		{
-			player.up = true;
+			game.player.up = true;
 		}
 		
 		//player.down pressed	
 		if(key == KeyEvent.VK_S)
 		{
-			player.down = true;	
+			game.player.down = true;	
 		}
 		
 		//player.right pressed	
 		if(key == KeyEvent.VK_D)
 		{
-			player.right = true;	
+			game.player.right = true;	
 		}
 			
 		//player.left pressed	
 		if(key == KeyEvent.VK_A)
 		{
-			player.left = true;
+			game.player.left = true;
 		}
+		
+		if(key == KeyEvent.VK_UP)
+			game.gameCamera.zoomIn = true;
+		
+		
+		if(key == KeyEvent.VK_DOWN)
+			game.gameCamera.zoomOut = true;
 		
 		
 		
@@ -81,26 +88,34 @@ public class KeyInput extends KeyAdapter
 		
 		if(key == KeyEvent.VK_W)
 		{
-			player.up = false;
+			game.player.up = false;
 		}
 		
 		//player.down released
 		if (key ==  KeyEvent.VK_S)
 		{
-			player.down = false;
+			game.player.down = false;
 		}
 		
 		//player.left released	
 		if (key == KeyEvent.VK_A)
 		{
-			player.left = false;
+			game.player.left = false;
 		}
 		
 		//player.right released
 		if (key == KeyEvent.VK_D)
 		{
-			player.right = false;
+			game.player.right = false;
 		}
+		
+		if(key == KeyEvent.VK_UP)
+			game.gameCamera.zoomIn = false;
+		
+		
+		if(key == KeyEvent.VK_DOWN)
+			game.gameCamera.zoomOut = false;
+		
 		
 			
 	}

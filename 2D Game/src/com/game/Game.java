@@ -3,50 +3,43 @@ package com.game;
 import java.awt.Canvas;
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.Font;
 import java.awt.Graphics;
-import java.awt.Point;
-import java.awt.Rectangle;
+import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferStrategy;
 import java.awt.image.BufferedImage;
-import java.util.ArrayList;
-import java.util.HashMap;
-
+import com.game.GameState.GAMESTATE;
 import com.game.display.Camera;
 import com.game.display.Window;
-import com.game.entities.Chunk;
 import com.game.entities.creatures.Player;
 import com.game.entities.tiles.Tile;
 import com.game.gfx.ImageLoader;
 import com.game.input.KeyInput;
 import com.game.input.MouseInput;
 import com.game.input.MouseMovement;
-import com.game.sprites.Animator;
 
 
 public class Game extends Canvas implements Runnable {
 	public static final int HEIGHT = 1000;
 	public static final int WIDTH = 1000;
+	public int fps = 0;
 	Dimension dimensions = new Dimension(WIDTH, HEIGHT);
 	public static boolean IS_RUNNING = false;
 	public Thread gameThread;
 	public Camera gameCamera;
-	public static Player player;
+	public Player player;
 	BufferedImage cursor;
+	public ChunkManager chunkManager;
+	public Tile highlightedTile;
+	public GameState gameState;
 	
-	static int slowUpdate = 0;
+	public GAMESTATE state;
 	
-	
-	
-	public static enum State
-	{
-		LOADING,
-		RUNNING,
-		PAUSED;
-	}
+	public static int slowUpdate = 0;
 	
 	
-	public static State state = State.LOADING;
+	
+	
 	
 	private static final long serialVersionUID = -20503614128161992L;
 
@@ -55,12 +48,12 @@ public class Game extends Canvas implements Runnable {
 		this.setPreferredSize(dimensions);
 		this.setMinimumSize(dimensions);
 		this.setMaximumSize(dimensions);
-
+		
 		new Window("2D Game", this);
 
-		this.addKeyListener(new KeyInput(player));
-		this.addMouseListener(new MouseInput(player));
-		this.addMouseMotionListener(new MouseMovement(player));
+		this.addKeyListener(new KeyInput(this));
+		this.addMouseListener(new MouseInput(this));
+		this.addMouseMotionListener(new MouseMovement(this));
 		this.setFocusable(true);
 		
 	}
@@ -69,12 +62,15 @@ public class Game extends Canvas implements Runnable {
 		new Game();
 	}
 	
-	public void start() {
+	public void start() throws CloneNotSupportedException {
 		gameThread = new Thread(this);
+		gameState = new GameState(this);
+		state = GAMESTATE.RUNNING;
 		
 		
 		try {
-			Assets.initialize();
+			chunkManager = new ChunkManager(this, "/chunks");
+			Assets.initialize(this);
 			
 		} catch (CloneNotSupportedException e) {
 			// TODO Auto-generated catch block
@@ -86,10 +82,10 @@ public class Game extends Canvas implements Runnable {
 		cursor = ImageLoader.loadImage("/textures/Cursor.png");
 		
 		
-		ChunkManager.checkLoadedChunks();
+		chunkManager.checkLoadedChunks(player);
 		
 		IS_RUNNING = true;
-		state = State.RUNNING;
+		
 		
 		//player.setLocation(new Point(ChunkManager.Chunks.get(0).origin.x + 10, ChunkManager.Chunks.get(0).origin.y + 10));
 		gameThread.start();
@@ -102,7 +98,7 @@ public class Game extends Canvas implements Runnable {
 		this.requestFocus();
 
 		long lastTime = System.nanoTime();
-		double amountOfTicks = 60.0;
+		double amountOfTicks = 75.0;
 		double ns = 1000000000 / amountOfTicks;
 		double delta = 0;
 		long timer = System.currentTimeMillis();
@@ -112,18 +108,25 @@ public class Game extends Canvas implements Runnable {
 			delta += (now - lastTime) / ns;
 			lastTime = now;
 			while (delta >= 1) {
-				update();
+				try {
+					update();
+				} catch (CloneNotSupportedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 				delta--;
 			}
 			if (IS_RUNNING)
 			{
 				render();
+				
 			}
 			frames++;
 
 			if (System.currentTimeMillis() - timer > 1000) {
 				timer += 1000;
 				System.out.println("FPS: " + frames);
+				fps = frames;
 				frames = 0;
 			}
 		}
@@ -149,31 +152,13 @@ public class Game extends Canvas implements Runnable {
 
 		Graphics g = buffer.getDrawGraphics();
 		
+		
 		g.setColor(Color.white);
 		g.fillRect(0, 0, WIDTH, HEIGHT);
 		
-		switch(state)
-		{
-			case LOADING :
-				g.setColor(Color.black);
-				g.drawString("Loading" , WIDTH/2 - 30, HEIGHT/2 -20);
-			case RUNNING :
-				renderProccess(g);
-				break;
-				
-			case PAUSED :
-				
-				renderProccess(g);
-				
-				g.setColor(new Color(0, 0, 0, 100));
-				g.fillRect(0, 0, WIDTH, HEIGHT);
-				g.setFont(new Font("TimesRoman", Font.BOLD, 50)); 
-				g.setColor(Color.black);
-				g.drawString("PAUSED" , WIDTH/2 - 100, HEIGHT/2 -200);
-				break;
-				
-				
-		}
+		gameState.render(g);
+		
+		
 		drawCursor(g);
 		g.dispose();
 		buffer.show();
@@ -181,66 +166,35 @@ public class Game extends Canvas implements Runnable {
 
 	}
 	
-	private void update() {
-	slowUpdate++;
-	
-	if(slowUpdate == 60)
+	private void update() throws CloneNotSupportedException 
 	{
-		ChunkManager.longUpdateChunks();
-		player.longUpdate();
-		slowUpdate = 0;
-	}
-	switch(state)
-	{
-	case LOADING :
-		break;
-
-	case RUNNING :
-
-		Animator.updateFrames();
-		ChunkManager.updateChunks();
-		
-		player.update();
-		gameCamera.updateCamera();
-		break;
-
-	case PAUSED : 
-		break;
-
-	}
-	
-	}
-	private void renderPlayer(Graphics g)
-	{
-		Game.player.drawSprite(g);
-		if(player.displayHitbox)
-			player.drawHitbox(g);
-		if(player.getHitbox().contains(new Point(player.mouseX, player.mouseY)))
-			player.drawHitbox(g);
-		
-		for(Tile t : Game.player.nearbyTiles)
-		{
-			if(t.canCollide())
-			{
-				t.drawHitbox(g);
-			}
-		}
-	}
-	private void renderProccess(Graphics g)
-	{
-		ChunkManager.renderTiles(g);
-		renderPlayer(g);
-		ChunkManager.renderCreatures(g);
-		ChunkManager.renderGUI(g);
+		gameState.update();
 		
 	}
-	
-	
 	private void drawCursor(Graphics g)
 	{
-		g.drawImage(cursor, player.mouseX-cursor.getWidth()/2, player.mouseY-cursor.getHeight()/2, null);
+		g.drawImage(cursor, (int) player.localMouseX-cursor.getWidth()/2, (int) player.localMouseY-cursor.getHeight()/2, null);
 	}
 	
+	public void drawTileInfo(Graphics g)
+	{
+		if(highlightedTile != null)
+		{
+			highlightedTile.drawHitbox(g);
+			g.setColor(Color.BLUE);
+			g.fillRect(Game.WIDTH - 500, Game.HEIGHT - 20, 500, 20);
+			g.setColor(Color.GREEN);
+			String tileAboveType = new String();
+			if(highlightedTile.tileAbove != null)
+			{
+				tileAboveType = tileAboveType + highlightedTile.tileAbove.type;
+			} else
+			{
+				tileAboveType = ", tileAbove is null";
+			}
+			g.drawString(highlightedTile.getAnimator().sprite.name + "Type = " + highlightedTile.type + " " + tileAboveType + "Tile index = " + highlightedTile.chunkIndex, WIDTH-500, HEIGHT - 5);
+		}
+	}
 	public static boolean inBetween(double val, double low, double high, boolean inclusive) {
 		if (inclusive) {
 			if (val >= low && val <= high)
@@ -252,11 +206,10 @@ public class Game extends Canvas implements Runnable {
 		return false;
 	}
 	
-	public static boolean inBetween(Point val, Point low, Point high) 
+	public static boolean inBetween(Point2D val, Point2D low, Point2D high) 
 	{
 		
-		Rectangle rect = new Rectangle(low);
-		rect.add(high);
+		Rectangle2D.Double rect = new Rectangle2D.Double(low.getX(), low.getY(), high.getX(), high.getY());
 		if(rect.contains(val))
 		{
 			return true;
@@ -279,14 +232,14 @@ public class Game extends Canvas implements Runnable {
 		return num;
 	}
 	
-	public static double dist(int x, int y, int x2, int y2)
+	public static double dist(double x, double y, double x2, double y2)
 	{
 		return Math.sqrt(Math.pow(x-x2, 2) + Math.pow(y-y2, 2));
 		
 	}
 	
 	
-	public static double dist(Point d1, Point d2)
+	public static double dist(Point2D d1, Point2D d2)
 	{
 		return d1.distance(d2);
 		

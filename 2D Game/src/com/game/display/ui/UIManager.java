@@ -1,5 +1,6 @@
 package com.game.display.ui;
 
-public class UIManager {
+public class UIManager 
+{
 
 }

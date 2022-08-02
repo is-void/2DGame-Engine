@@ -10,22 +10,30 @@ import java.util.Scanner;
 
 import com.game.entities.Chunk;
 import com.game.entities.creatures.Creature;
+import com.game.entities.creatures.Player;
 import com.game.entities.tiles.Tile;
 
 public class ChunkManager 
 {
-	public static ArrayList<Chunk> Chunks = new ArrayList<Chunk>();
-	public static ArrayList<Chunk> LoadedChunks = new ArrayList<Chunk>();
+	private Game game;
+	private String path;
+	public ArrayList<Chunk> Chunks = new ArrayList<Chunk>();
+	public ArrayList<Chunk> LoadedChunks = new ArrayList<Chunk>();
+	public ArrayList<Creature> creatures = new ArrayList<Creature>();
 	
-	public static ArrayList<Creature> creatures = new ArrayList<Creature>();
 	
-	
-	public static void initialize()
+	public ChunkManager(Game game, String path)
+	{
+		this.game = game;
+		this.path = path;
+	}
+
+	public void initialize()
 	{
 		
 		File directory;
 		try {
-			directory = new File(ChunkManager.class.getResource("/chunks").toURI());
+			directory = new File(ChunkManager.class.getResource(path).toURI());
 			if(directory.isDirectory())
 				setChunks(directory.listFiles());
 			else
@@ -34,32 +42,37 @@ public class ChunkManager
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
+	
 	}
 	
-	public static void setChunks(File[] files)
+	public void setChunks(File[] files)
 	{
 		Chunks.clear();
+
 		for(File chunk : files)
 		{
+			
 			try {
+				
 				Scanner s = new Scanner(chunk);
-				Chunks.add(new Chunk(s.nextInt(), s.nextInt(), chunk.getPath()));
+				Chunks.add(new Chunk(game, s.nextInt()*Chunk.WIDTH, s.nextInt()*Chunk.HEIGHT, chunk.getPath()));
+				
 				s.close();
 			} catch (FileNotFoundException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
+		
+		
 	}
 	
-	public static void checkLoadedChunks()
+	public void checkLoadedChunks(Player player) throws CloneNotSupportedException
 	{
 		ArrayList<Chunk> temp = new ArrayList<Chunk>();
-		ArrayList<Tile> tempTiles = new ArrayList<Tile>();
 		for(Chunk c : Chunks)
 		{
-			if(c.isNearPlayer())
+			if(c.isNearPlayer(player))
 			{
 				temp.add(c);
 				AssignCreatureToChunk(c);
@@ -69,52 +82,42 @@ public class ChunkManager
 		
 		for(Chunk c : temp)
 		{
+			c.checkTileDependent();
+			/*
 			for(Tile t : c.tiles)
 			{
-				if(t.nearCreature(Game.player))
+				if(t.nearCreature(game.player))
 					tempTiles.add(t);
 			}
+			*/
 		}
 		
 		LoadedChunks = temp;
 		
 	}
-	public static void renderTiles(Graphics g)
+	public void renderTiles(Graphics g)
 	{
 		for(Chunk c : LoadedChunks)
+		{
 			c.renderTiles(g);
-	}
-	/*
-	public static void renderBacktiles(Graphics g)
-	{
-		for(Chunk c : LoadedChunks)
-		{
-			c.renderBackTiles(g);
-		}
-	}
-	public static void renderFronttiles(Graphics g)
-	{
-		for(Chunk c : LoadedChunks)
-		{
-			c.renderFrontTiles(g);
-		}
-	}
-	*/
-	public static void renderCreatures(Graphics g)
-	{
-		for(Chunk c : LoadedChunks)
-		{
-			c.renderCreatures(g);
 		}
 	}
 	
-	public static void renderGUI(Graphics g)
+	public void renderCreatures(Graphics g, Game game)
+	{
+		for(Chunk c : LoadedChunks)
+		{
+			c.renderCreatures(g, game.player);
+		}
+	}
+	
+	public void renderGUI(Graphics g)
 	{
 		for(Chunk c : LoadedChunks)
 			c.renderHealthBars(g);
 	}
 	
-	public static void updateChunks()
+	public void updateChunks()
 	{
 		for(Chunk c : LoadedChunks)
 		{
@@ -124,18 +127,25 @@ public class ChunkManager
 		}
 	}
 	
-	public static void longUpdateChunks()
+	public void longUpdateChunks(Game game) throws CloneNotSupportedException
 	{
+		
 		for(Chunk  c : LoadedChunks)
 		{
 			
 			c.longUpdate();
+			
 			AssignCreatureToChunk(c);
 		}
-		checkLoadedChunks();
+		try {
+			checkLoadedChunks(game.player);
+		} catch (CloneNotSupportedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
-	public static void AssignCreatureToChunk(Chunk chunk)
+	public void AssignCreatureToChunk(Chunk chunk)
 	{
 		for(Creature c : creatures)
 		{
@@ -156,6 +166,55 @@ public class ChunkManager
 		}
 	}
 	
+	public ArrayList<Chunk> getChunks() {
+		return Chunks;
+	}
+
+	public void setChunks(ArrayList<Chunk> chunks) {
+		Chunks = chunks;
+	}
+
+	public ArrayList<Chunk> getLoadedChunks() {
+		return LoadedChunks;
+	}
+
+	public void setLoadedChunks(ArrayList<Chunk> loadedChunks) {
+		LoadedChunks = loadedChunks;
+	}
+
+	public ArrayList<Creature> getCreatures() {
+		return creatures;
+	}
+
+	public void setCreatures(ArrayList<Creature> creatures) {
+		this.creatures = creatures;
+	}
 	
+	public Tile getTileAtPosition(Point postion)
+	{
+		for(Chunk c : Chunks)
+		{
+			for(Tile t : c.tiles)
+			{
+				if(t.getHitbox().contains(postion))
+				{
+					return t;
+				}
+			}
+		}
+		
+		return null;
+	}
+	
+	public Tile getTileAtPosition(Point postion, Chunk c)
+	{
+		for(Tile t : c.tiles)
+		{
+			if(t.getHitbox().contains(postion))
+				return t;
+		}
+		
+		return null;
+	}
 	
 }

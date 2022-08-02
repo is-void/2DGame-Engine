@@ -1,7 +1,5 @@
 package com.game.sprites;
 
-import java.awt.image.BufferedImage;
-
 import com.game.entities.Entity;
 
 public class EntityAnimator extends Animator
