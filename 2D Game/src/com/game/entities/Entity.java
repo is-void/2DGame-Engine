@@ -36,7 +36,10 @@ public abstract class Entity
 	public int hitboxXOffset, hitboxYOffset;
 	public boolean showHitbox = false;
 	
+	public boolean load = false;
 	public boolean scheduledUpdate = true;
+	
+	public static int CollisionDistance = 1000;
 	
 	public enum EntityType
 	{
@@ -87,6 +90,7 @@ public abstract class Entity
 	{
 		this.game = game;
 		animator = anim;
+		
 		defaultHitbox();
 		this.x = x;
 		this.y = y;
@@ -108,7 +112,7 @@ public abstract class Entity
 	
 	public boolean nearCreature(Creature c)
 	{
-		if(Game.dist(origin, c.getOrigin()) <= 1000)
+		if(Game.dist(origin, c.getOrigin()) <= CollisionDistance)
 		{
 			return true;
 		}
@@ -123,7 +127,7 @@ public abstract class Entity
 	public void drawHitbox(Graphics g)
 	{
 		g.setColor(Color.red);
-		g.drawRect((int) (Game.WIDTH/2 - (Camera.X-hitbox.x) * Camera.zoom), (int) (Game.WIDTH/2 - (Camera.Y-hitbox.y) * Camera.zoom), (int) ((getHitbox().width) * Camera.zoom), (int) ( (getHitbox().height) * Camera.zoom));
+		g.drawRect((int) (Game.WIDTH/2 - (Camera.X-hitbox.x) * Camera.zoom), (int) (Game.HEIGHT/2 - (Camera.Y-hitbox.y) * Camera.zoom), (int) ((getHitbox().width) * Camera.zoom), (int) ( (getHitbox().height) * Camera.zoom));
 		
 	}
 	

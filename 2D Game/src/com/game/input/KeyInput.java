@@ -12,6 +12,7 @@ public class KeyInput extends KeyAdapter
 {
 	private Game game;
 	
+	private boolean pauseToggle = true;
 	
 	public KeyInput(Game game)
 	{
@@ -23,8 +24,9 @@ public class KeyInput extends KeyAdapter
 		
 		int key = e.getKeyCode();
 		
-		if(key == KeyEvent.VK_ESCAPE)
+		if(key == KeyEvent.VK_ESCAPE && pauseToggle)
 		{
+			pauseToggle = false;
 			if(game.state == GAMESTATE.RUNNING)
 			{
 				game.state = GAMESTATE.PAUSED;
@@ -67,7 +69,15 @@ public class KeyInput extends KeyAdapter
 		if(key == KeyEvent.VK_DOWN)
 			game.gameCamera.zoomOut = true;
 		
-		
+		if(key == KeyEvent.VK_F3)
+		{
+			
+			if(game.player != null && game.chunkManager != null)
+				game.gameState.setStateToRunning();
+			else
+				System.out.println("\nChunkManager or player is null");
+		}
+			
 		
 			
 	}
@@ -116,7 +126,10 @@ public class KeyInput extends KeyAdapter
 		if(key == KeyEvent.VK_DOWN)
 			game.gameCamera.zoomOut = false;
 		
-		
+		if(key == KeyEvent.VK_ESCAPE)
+		{
+			pauseToggle = true;
+		}
 			
 	}
 }

@@ -8,9 +8,13 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferStrategy;
 import java.awt.image.BufferedImage;
+import java.io.FileNotFoundException;
+
 import com.game.GameState.GAMESTATE;
+import com.game.data.Settings;
 import com.game.display.Camera;
 import com.game.display.Window;
+import com.game.display.ui.UIManager;
 import com.game.entities.creatures.Player;
 import com.game.entities.tiles.Tile;
 import com.game.gfx.ImageLoader;
@@ -20,10 +24,10 @@ import com.game.input.MouseMovement;
 
 
 public class Game extends Canvas implements Runnable {
-	public static final int HEIGHT = 1000;
-	public static final int WIDTH = 1000;
+	public static int HEIGHT;
+	public static int WIDTH;
 	public int fps = 0;
-	Dimension dimensions = new Dimension(WIDTH, HEIGHT);
+	Dimension dimensions;
 	public static boolean IS_RUNNING = false;
 	public Thread gameThread;
 	public Camera gameCamera;
@@ -32,8 +36,12 @@ public class Game extends Canvas implements Runnable {
 	public ChunkManager chunkManager;
 	public Tile highlightedTile;
 	public GameState gameState;
-	
+	public boolean load = false;
+	public double loadingProgress;
 	public GAMESTATE state;
+	public UIManager uiManager;
+	
+	public Settings settings;
 	
 	public static int slowUpdate = 0;
 	
@@ -45,6 +53,16 @@ public class Game extends Canvas implements Runnable {
 
 	public Game() {
 		// setup
+		
+		try {
+			settings = new Settings(this, "/data/settings.dat");
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		dimensions = new Dimension(WIDTH, HEIGHT);
+		
 		this.setPreferredSize(dimensions);
 		this.setMinimumSize(dimensions);
 		this.setMaximumSize(dimensions);
@@ -63,32 +81,41 @@ public class Game extends Canvas implements Runnable {
 	}
 	
 	public void start() throws CloneNotSupportedException {
+		
+		state = GameState.GAMESTATE.LOADING;
+		
 		gameThread = new Thread(this);
 		gameState = new GameState(this);
-		state = GAMESTATE.RUNNING;
-		
-		
-		try {
-			chunkManager = new ChunkManager(this, "/chunks");
-			Assets.initialize(this);
-			
-		} catch (CloneNotSupportedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
 		gameCamera = new Camera(player);
+		uiManager = new UIManager(this);
 		
 		cursor = ImageLoader.loadImage("/textures/Cursor.png");
-		
-		
-		chunkManager.checkLoadedChunks(player);
-		
 		IS_RUNNING = true;
 		
 		
-		//player.setLocation(new Point(ChunkManager.Chunks.get(0).origin.x + 10, ChunkManager.Chunks.get(0).origin.y + 10));
 		gameThread.start();
+		
+		chunkManager = new ChunkManager(this, "/chunks");
+		
+		//chunkManager.initialize();
+		
+		
+		Assets.initialize(this);
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		//state = GameState.GAMESTATE.RUNNING;
+		
+		//player.setLocation(new Point(ChunkManager.Chunks.get(0).origin.x + 10, ChunkManager.Chunks.get(0).origin.y + 10));
+		
 		
 		
 	}
@@ -173,7 +200,8 @@ public class Game extends Canvas implements Runnable {
 	}
 	private void drawCursor(Graphics g)
 	{
-		g.drawImage(cursor, (int) player.localMouseX-cursor.getWidth()/2, (int) player.localMouseY-cursor.getHeight()/2, null);
+		if(player != null)
+			g.drawImage(cursor, (int) player.localMouseX-cursor.getWidth()/2, (int) player.localMouseY-cursor.getHeight()/2, null);
 	}
 	
 	public void drawTileInfo(Graphics g)

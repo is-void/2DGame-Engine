@@ -53,8 +53,6 @@ public class ConnecterTile extends Tile
 				break;
 				
 			default :
-				System.out.print("Error! ConnecterTile is not a valid tileType");
-				
 				break;
 			
 		}

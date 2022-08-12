@@ -5,6 +5,8 @@ import java.awt.Graphics;
 import java.util.ArrayList;
 
 import com.game.display.Camera;
+import com.game.display.ui.UIElement;
+import com.game.display.ui.UIWidget;
 import com.game.entities.Entity;
 
 
@@ -16,28 +18,41 @@ public class Animator
 	public Sprite idleAnim;
 	public Sprite sprite; 
 	private int index;
-	private Entity owner;
+	private Object owner;
 	private static int frameCounter = 0;
 	private boolean inAttackAnim;
 	public int frameRate = 10;
 	public ArrayList<Sprite> overlays = new ArrayList<Sprite>();
 	public int maxOverlayAmount = 4;
+	public int scale = 1;
+	
+	enum ObjectType
+	{
+		ENTITY,
+		UIWIDGET,
+		OTHER
+	}
+	
+	ObjectType objTyp;
 	
 	public Animator(Sprite spr)
 	{
 		
-		height = spr.height;
-		width = spr.width;
+		height = spr.getHeight();
+		width = spr.getWidth();
 		sprite = spr;
 	}
-	public Animator(Sprite spr, Entity owner)
+	
+	public Animator(Sprite spr, Object owner)
 	{
-		
-		height = spr.height;
-		width = spr.width;
+		height = spr.getHeight();
+		width = spr.getWidth();
 		sprite = spr;
-		System.out.print(owner);
+		setOwner(owner);
+		
+		
 	}
+	
 	public static void updateFrames()
 	{
 
@@ -57,19 +72,55 @@ public class Animator
 			}
 	}
 	
-	public void setOwner(Entity e)
+	public void setOwner(Object e)
 	{
 		owner = e;
+		switch(e.getClass().getSimpleName())
+		{
+			case "ConnecterTile":
+			case "Tile" :
+			case "Entity":
+			case "Creature":
+			case "Player":
+				objTyp = ObjectType.ENTITY;
+				break;
+			
+			case "UIWidget" :
+			case "Button" :
+				objTyp = ObjectType.UIWIDGET;
+				break;
+			default :
+				break;
+		}
 	}
+	
 	public void draw(Graphics g)
 	{
 		
-		
-		g.drawImage(getSprite().getCurrentFrame(), owner.getLocalX(), (int) owner.getLocalY(), (int) Math.ceil(width * Camera.zoom),   (int) (Math.ceil(height * Camera.zoom)), null);
-		for(int s = overlays.size()-1; s > -1; s--)
+		switch(objTyp)
 		{
-			g.drawImage(overlays.get(s).getCurrentFrame(), owner.getLocalX(), (int) owner.getLocalY(), (int) Math.ceil(width * Camera.zoom),   (int) (Math.ceil(height * Camera.zoom)), null);
+		case ENTITY:
+			g.drawImage(getSprite().getCurrentFrame(), ((Entity) owner).getLocalX(), (int) ((Entity) owner).getLocalY(), (int) Math.ceil(width * scale * Camera.zoom),   (int) (Math.ceil(height * scale * Camera.zoom)), null);
+			for(int s = overlays.size()-1; s > -1; s--)
+			{
+				g.drawImage(overlays.get(s).getCurrentFrame(), ((Entity) owner).getLocalX(), (int) ((Entity) owner).getLocalY(), (int) Math.ceil(width * scale * Camera.zoom),   (int) (Math.ceil(height * scale * Camera.zoom)), null);
+			}
+			break;
+		case OTHER:
+			break;
+		case UIWIDGET:
+			
+			g.drawImage(getSprite().getCurrentFrame(), ((UIWidget) owner).x, ((UIWidget) owner).y, width  * scale, height  * scale, null);
+			for(int s = overlays.size()-1; s > -1; s--)
+			{
+				g.drawImage(overlays.get(s).getCurrentFrame(), ((UIWidget) owner).x, ((UIWidget) owner).y, width * scale, height * scale, null);
+			}
+			break;
+		default:
+			break;
+		
 		}
+		
 		
 		
 	}
@@ -80,6 +131,11 @@ public class Animator
 		{
 			overlays.add(spr);
 		}
+	}
+	
+	public void clearOverlays(Sprite spr)
+	{
+		overlays.clear();
 	}
 	
 	public void setSprite(Sprite spr)

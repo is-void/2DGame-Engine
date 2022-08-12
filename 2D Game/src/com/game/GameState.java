@@ -5,6 +5,7 @@ import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.geom.Point2D;
 
+import com.game.display.ui.UIWidget;
 import com.game.sprites.Animator;
 
 public class GameState extends State
@@ -15,7 +16,8 @@ public class GameState extends State
 	{
 		RUNNING,
 		LOADING,
-		PAUSED
+		PAUSED,
+		START
 	}
 	
 	
@@ -30,26 +32,32 @@ public class GameState extends State
 		switch(game.state)
 		{
 			case LOADING :
-				g.setColor(Color.black);
-				g.drawString("Loading" , Game.WIDTH/2 - 30, Game.HEIGHT/2 -20);
+				break;
+				
+				
 			case RUNNING :
 				g.setFont(new Font("Tahoma", Font.BOLD, 11)); 
-				renderProccess(g);				
+				renderProccess(g);
+				
+				drawDebugInfo(g);
+				
 				break;
 				
 			case PAUSED :
 				
 				renderProccess(g);
 				
-				g.setColor(new Color(0, 0, 0, 100));
-				g.fillRect(0, 0, Game.WIDTH, Game.HEIGHT);
-				g.setFont(new Font("TimesRoman", Font.BOLD, 50)); 
-				g.setColor(Color.black);
-				g.drawString("PAUSED" , Game.WIDTH/2 - 100, Game.HEIGHT/2 -200);
+				
+				drawDebugInfo(g);
+				break;
+				
+			case START :
 				break;
 		}
-		g.setFont(new Font("Tahoma", Font.BOLD, 11)); 
-		drawDebugInfo(g);
+		
+		game.uiManager.render(g);
+		 
+		
 	}
 	
 	public void update() throws CloneNotSupportedException 
@@ -69,8 +77,19 @@ public class GameState extends State
 		switch(game.state)
 		{
 			case LOADING :
+			{
+				if(game.loadingProgress == 1)
+				{
+					setState(GameState.GAMESTATE.START);
+				}
+			}
 				break;
-		
+				
+			case START :
+			{
+				break;
+			}
+				
 			case RUNNING :
 		
 				Animator.updateFrames();
@@ -82,6 +101,14 @@ public class GameState extends State
 		
 			case PAUSED : 
 				break;
+		default:
+			break;
+		}
+		if(game.uiManager != null && game.uiManager.isLoaded)
+		{
+			
+			game.uiManager.checkState();
+			game.uiManager.update();
 		}
 
 	}
@@ -91,6 +118,44 @@ public class GameState extends State
 	{
 		game.state = st;
 	}
+	
+	public void setStateToRunning()
+	{
+		game.chunkManager.creatures.add(game.player);
+		game.load = false;
+		game.gameCamera.changeFocus(game.player);
+		game.chunkManager.initialize();
+		
+		try {
+			game.chunkManager.checkLoadedChunks(game.player);
+		} catch (CloneNotSupportedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		game.state = GAMESTATE.RUNNING;
+		
+	}
+	
+	public static void setStateToRunning(UIWidget widget)
+	{
+		Game g = widget.game;
+		g.chunkManager.creatures.add(g.player);
+		g.load = false;
+		g.gameCamera.changeFocus(g.player);
+		g.chunkManager.initialize();
+		
+		try {
+			g.chunkManager.checkLoadedChunks(g.player);
+		} catch (CloneNotSupportedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		g.state = GAMESTATE.RUNNING;
+		
+	}
+	
 	
 	public boolean isState(GAMESTATE state)
 	{
@@ -129,6 +194,7 @@ public class GameState extends State
 	
 	private void drawDebugInfo(Graphics g)
 	{
+		g.setFont(new Font("Tahoma", Font.BOLD, 11));
 		g.setColor(Color.BLUE);
 		g.fillRect(0, 0, 70, 20);
 		g.setColor(Color.GREEN);

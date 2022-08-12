@@ -30,7 +30,7 @@ public class ChunkManager
 
 	public void initialize()
 	{
-		
+		game.state = GameState.GAMESTATE.LOADING;
 		File directory;
 		try {
 			directory = new File(ChunkManager.class.getResource(path).toURI());
@@ -107,7 +107,9 @@ public class ChunkManager
 	{
 		for(Chunk c : LoadedChunks)
 		{
+			
 			c.renderCreatures(g, game.player);
+			
 		}
 	}
 	
@@ -147,6 +149,7 @@ public class ChunkManager
 	
 	public void AssignCreatureToChunk(Chunk chunk)
 	{
+		
 		for(Creature c : creatures)
 		{
 			if(c.getChunk() != null)

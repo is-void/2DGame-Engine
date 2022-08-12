@@ -7,16 +7,18 @@ public class Sprite implements Cloneable
 	int currentFrame;
 	BufferedImage[] sprite;
 	public String name;
-	int width =32;
-	int height = 32;
+	private int width =32;
+	private int height = 32;
+	
+	
 	
 	public Sprite(BufferedImage[] sprite, String name, int w, int h)
 	{
 		this.sprite = sprite;
 		currentFrame = 0;
 		this.name = name;
-		width = w;
-		height = h;
+		setWidth(w);
+		setHeight(h);
 	}
 	/*
 	public Sprite(BufferedImage[] sprite, int w, int h)
@@ -32,7 +34,7 @@ public class Sprite implements Cloneable
 	public Sprite() 
 	{
 		sprite = new BufferedImage[1];
-		sprite[0] = new BufferedImage(width, height, BufferedImage.TYPE_4BYTE_ABGR);
+		sprite[0] = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_4BYTE_ABGR);
 		currentFrame = 0;
 		name = "invisible";
 		
@@ -62,5 +64,21 @@ public class Sprite implements Cloneable
 	public Sprite clone() throws CloneNotSupportedException
 	{
 		return (Sprite) super.clone();
+	}
+
+	public int getWidth() {
+		return width;
+	}
+
+	public void setWidth(int width) {
+		this.width = width;
+	}
+
+	public int getHeight() {
+		return height;
+	}
+
+	public void setHeight(int height) {
+		this.height = height;
 	}
 }

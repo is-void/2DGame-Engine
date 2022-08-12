@@ -285,11 +285,13 @@ public class Chunk
 		
 		for(Creature c : creatures)
 		{
+			
 			c.checkLoaded();
 			if(c.isRendered())
 			{
 				
 				c.drawSprite(g);
+				c.drawHealthBar(g);
 				if(showHitbox)
 					c.drawHitbox(g);
 				if(c.getHitbox().contains(new Point2D.Double(player.mouseX, player.mouseY)))

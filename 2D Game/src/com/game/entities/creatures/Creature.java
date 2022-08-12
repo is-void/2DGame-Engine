@@ -6,6 +6,7 @@ import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 
 import com.game.Game;
+import com.game.display.Camera;
 import com.game.display.ui.Bar;
 import com.game.display.ui.Bar.BarType;
 import com.game.entities.Entity;
@@ -53,7 +54,7 @@ public abstract class Creature extends Entity
 	{
 		super(game, anim, x, y);
 		
-		healthBar = new Bar(80, 10, this, BarType.HEALTH);
+		healthBar = new Bar(game, 80, 10, this, BarType.HEALTH);
 		health = hp;
 		maxHealth = hp;
 		isStatic = false;
@@ -64,6 +65,8 @@ public abstract class Creature extends Entity
 	
 	private void creatureHitbox()
 	{
+		
+		
 		hitbox = new Rectangle2D.Float(x + hitboxXOffset, y + hitboxYOffset, getAnimator().getWidth() - 2 * hitboxXOffset, getAnimator().getHeight() - 2 * hitboxYOffset);
 		
 	}
