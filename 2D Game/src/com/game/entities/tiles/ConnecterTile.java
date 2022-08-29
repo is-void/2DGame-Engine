@@ -1,24 +1,25 @@
 package com.game.entities.tiles;
 
+import java.util.HashMap;
+
 import com.game.Game;
 import com.game.sprites.Animator;
 import com.game.sprites.Sprite;
-import java.util.HashMap;
 
 public class ConnecterTile extends Tile
 {
-	HashMap<String, Sprite> directionalTiles = new HashMap<String, Sprite>();
+	HashMap<String, Sprite> directionalTiles = new HashMap<>();
 	Sprite[] sprites;
-	
-	
-	public ConnecterTile(Game game, Sprite[] sprites, boolean collison) throws CloneNotSupportedException 
+
+
+	public ConnecterTile(Game game, Sprite[] sprites, boolean collison) throws CloneNotSupportedException
 	{
 		super(game, collison);
 		animator = new Animator(sprites[0]);
 		defaultHitbox();
 		animator.setOwner(this);
 		this.sprites = sprites;
-		
+
 		directionalTiles.put("base", sprites[0].clone());
 		directionalTiles.put("center", sprites[1].clone());
 		directionalTiles.put("vertical", sprites[2].clone());
@@ -35,42 +36,43 @@ public class ConnecterTile extends Tile
 		directionalTiles.put("bottomEnd", sprites[13].clone());
 		directionalTiles.put("leftEnd", sprites[14].clone());
 		directionalTiles.put("rightEnd", sprites[15].clone());
-		
+
 		Tile.checkTileType(this);
 		System.out.print(type);
 		switch(type)
 		{
-			
+
 			case PATH :
 				break;
-			
+
 			case WATER :
 				directionalTiles.put("topLeftCorner", sprites[16].clone());
 				directionalTiles.put("topRightCorner", sprites[17].clone());
 				directionalTiles.put("bottomLeftCorner", sprites[18].clone());
 				directionalTiles.put("bottomRightCorner", sprites[19].clone());
-				
+
 				break;
-				
+
 			default :
 				break;
-			
+
 		}
-		
+
 
 	}
-	
-	
+
+
+	@Override
 	public void check() throws CloneNotSupportedException
 	{
-		
+
 		super.check();
-		
+
 		boolean connecterAbove = false;
 		boolean connecterBelow = false;
 		boolean connecterRight = false;
 		boolean connecterLeft = false;
-		
+
 		if(tileAbove.type == this.type )
 		{
 			connecterAbove = true;
@@ -87,9 +89,9 @@ public class ConnecterTile extends Tile
 		{
 			connecterLeft = true;
 		}
-		
-		
-		
+
+
+
 		if(connecterAbove)
 		{
 			if(connecterBelow)
@@ -97,11 +99,11 @@ public class ConnecterTile extends Tile
 				if(connecterLeft && connecterRight)
 				{
 						animator.setSprite(directionalTiles.get("base").clone());
-						
+
 				} else if(connecterLeft)
 				{
 					animator.setSprite(directionalTiles.get("right").clone());
-					
+
 				}else if(connecterRight)
 				{
 					animator.setSprite(directionalTiles.get("left").clone());
@@ -175,30 +177,30 @@ public class ConnecterTile extends Tile
 			boolean topLeft = false;
 			boolean bottomRight = false;
 			boolean bottomLeft = false;
-			
+
 			if(tileAbove.tileRight != null && tileAbove.tileRight.type != this.type)
 			{
 				topRight = true;
 			}
-			
+
 			if(tileAbove.tileLeft != null && tileAbove.tileLeft.type != this.type)
 			{
 				topLeft = true;
 			}
-			
+
 			if(tileBelow.tileRight != null && tileBelow.tileRight.type != this.type)
 			{
 				bottomRight = true;
 			}
-			
+
 			if(tileBelow.tileLeft != null && tileBelow.tileLeft.type != this.type)
 			{
 				bottomLeft = true;
 			}
-			
+
 			if(topRight || topLeft || bottomRight || bottomLeft)
 			{
-				
+
 				if(topRight && connecterAbove && connecterRight)
 				{
 					animator.addOverlay(directionalTiles.get("topRightCorner").clone());
@@ -215,17 +217,18 @@ public class ConnecterTile extends Tile
 				{
 					animator.addOverlay(directionalTiles.get("bottomLeftCorner").clone());
 				}
-				
-				
+
+
 			}
 		}
-		
-		
-		
-		
-		
+
+
+
+
+
 	}
-	
+
+	@Override
 	public ConnecterTile clone()
 	{
 		try {

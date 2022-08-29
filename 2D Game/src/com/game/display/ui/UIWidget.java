@@ -1,6 +1,5 @@
 package com.game.display.ui;
 
-import java.awt.Graphics;
 import java.awt.geom.Rectangle2D;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -20,22 +19,22 @@ public abstract class UIWidget implements UIElement
 	public Rectangle2D widgetHitbox;
 	public Animator animator;
 	public String text;
-	
-	
+
+
 	public UIWidget(Animator animator, UIManager uiManager)
 	{
 		this.animator = animator;
 		animator.setOwner(this);
 		this.uiManager = uiManager;
 		this.game = uiManager.game;
-		
+
 	}
 	public UIWidget(UIManager uiManager)
 	{
 		this.uiManager = uiManager;
 		this.game = uiManager.game;
 	}
-	
+
 	public void onClick()
 	{
 		if(action != null)
@@ -55,16 +54,16 @@ public abstract class UIWidget implements UIElement
 			}
 		}
 	}
-	
+
 	public void setOnClick(Method method)
 	{
 		action = method;
 	}
-	
-	
 
 
-	
-	
-	
+
+
+
+
+
 }

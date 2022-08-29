@@ -10,23 +10,26 @@ import com.game.Game;
 import com.game.GameState;
 import com.game.display.menu.Menu;
 import com.game.display.ui.Bar.BarType;
+import com.game.gfx.ImageLoader;
 import com.game.sprites.Animator;
+import com.game.sprites.Sprite;
+import com.game.sprites.SpriteSheet;
 
-public class UIManager 
+public class UIManager
 {
 	Bar loadingBar;
 	Game game;
-	
+
 	Menu startMenu;
-	
+
 	Button startButton;
 	Button titleButton;
-	
+
 	Menu pauseMenu;
 	Menu loadingMenu;
 	Menu gameMenu;
-	
-	
+
+
 	public boolean isLoaded = false;
 	enum UIState
 	{
@@ -36,29 +39,38 @@ public class UIManager
 		GAME_UI
 	}
 	UIState state;
-	
-	HashMap<UIState, Menu> uiMode = new HashMap<UIState, Menu>();
-	
+
+	HashMap<UIState, Menu> uiMode = new HashMap<>();
+
 	public UIManager(Game game)
 	{
 		this.game = game;
 		
-		try {
-			startButton = new Button(new Animator(Assets.startButton), this, Game.WIDTH/2 - 5 * Assets.startButton.getWidth(), Game.HEIGHT/2 - 5 * Assets.startButton.getHeight() + 200 , Assets.startButton.getWidth() * 10, Assets.startButton.getHeight() * 10, GameState.class.getMethod("setStateToRunning", UIWidget.class));
+		Assets.titleButton = new Sprite(new SpriteSheet(ImageLoader.loadImage(Game.HierarichalFile("/res/textures/TitleButton.png"))).getAnimation(1, 0, 160, 160), "StartButton", 160, 160);
+		Assets.startButton = new Sprite(new SpriteSheet(ImageLoader.loadImage(Game.HierarichalFile("/res/textures/StartButton.png"))).getAnimation(1, 0, 32, 18), "StartButton", 32, 18);
+		
+
+		
+			try {
+				startButton = new Button(new Animator(Assets.startButton), this, Game.WIDTH/2 - 5 * Assets.startButton.getWidth(), Game.HEIGHT/2 - 5 * Assets.startButton.getHeight() + 200 , Assets.startButton.getWidth() * 10, Assets.startButton.getHeight() * 10, GameState.class.getMethod("setStateToRunning", UIWidget.class), game.state);
+			} catch (NoSuchMethodException | SecurityException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			startButton.animator.scale = 10;
-			titleButton = new Button(new Animator(Assets.titleButton), this, Game.WIDTH/2 - 1 * Assets.titleButton.getWidth(), Game.HEIGHT/2 - 1 * Assets.titleButton.getHeight() - 200 , Assets.titleButton.getWidth() * 2, Assets.titleButton.getHeight() * 2, null);
+			titleButton = new Button(new Animator(Assets.titleButton), this, Game.WIDTH/2 - 1 * Assets.titleButton.getWidth(), Game.HEIGHT/2 - 1 * Assets.titleButton.getHeight() - 200 , Assets.titleButton.getWidth() * 2, Assets.titleButton.getHeight() * 2);
 			titleButton.animator.scale = 2;
-		} catch (NoSuchMethodException | SecurityException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+	
+			
+		
 		UIElement[] startMenuElements = {titleButton, startButton};
 		startMenu = new Menu(startMenuElements);
 		loadingBar = new Bar(game, Game.WIDTH/2 - 60, Game.HEIGHT/2 - 90, 100, 30, BarType.LOADING);
 		state = UIState.LOADING_UI;
 		isLoaded = true;
+		
 	}
-	
+
 	public void checkState()
 	{
 		switch(game.state)
@@ -77,10 +89,10 @@ public class UIManager
 				break;
 			default:
 				break;
-		
+
 		}
 	}
-	
+
 	public void update()
 	{
 		switch(state)
@@ -97,13 +109,13 @@ public class UIManager
 				break;
 			default:
 				break;
-			
+
 		}
 	}
-	
+
 	public void render(Graphics g)
 	{
-		
+
 		switch(state)
 		{
 		case GAME_UI:
@@ -112,12 +124,12 @@ public class UIManager
 			g.setColor(Color.black);
 			g.drawString("Loading" , Game.WIDTH/2 - 30, Game.HEIGHT/2 -20);
 			loadingBar.render(g);
-			
+
 			break;
 		case PAUSE_MENU:
 			g.setColor(new Color(0, 0, 0, 100));
 			g.fillRect(0, 0, Game.WIDTH, Game.HEIGHT);
-			g.setFont(new Font("TimesRoman", Font.BOLD, 50)); 
+			g.setFont(new Font("TimesRoman", Font.BOLD, 50));
 			g.setColor(Color.black);
 			g.drawString("PAUSED" , Game.WIDTH/2 - 100, Game.HEIGHT/2 -200);
 			break;
@@ -126,7 +138,7 @@ public class UIManager
 			break;
 		default:
 			break;
-			
+
 		}
 	}
 }

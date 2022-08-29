@@ -37,7 +37,7 @@ public class Bar implements UIElement
 			init();
 		}
 	}
-	
+
 	public Bar(Game game, int wid, int hei, Creature tar, BarType t)
 	{
 		this.game = game;
@@ -48,38 +48,39 @@ public class Bar implements UIElement
 		type = t;
 		isStatic = false;
 		init();
-		
+
 	}
-	
-	private void init() 
+
+	private void init()
 	{
-		
+
 		switch(type)
 		{
 		case HEALTH :
 			if(target != null)
 			{
-				
+
 				progress  = target.getHealth()/target.getMaxHealth();
 				x = target.getLocalX();
 				y = target.getLocalY();
 			}
 			break;
-			
+
 		case LOADING :
 			progress = game.loadingProgress;
 			break;
 		default:
 			break;
-			
+
 		}
 	}
-	
+
+	@Override
 	public void update()
 	{
 		if(canUpdate)
 		{
-			
+
 			switch(type)
 			{
 				case HEALTH :
@@ -104,22 +105,23 @@ public class Bar implements UIElement
 					break;
 			}
 		}
-				
-				
-			
+
+
+
 	}
-	
-	
+
+
 	public void setProgress(double p)
 	{
 		progress = p;
 	}
-	
+
 	public double getProgress()
 	{
 		return progress;
 	}
-	
+
+	@Override
 	public void render(Graphics g)
 	{
 		if(canUpdate)
@@ -143,7 +145,7 @@ public class Bar implements UIElement
 				g.fillRect(x, y, width, height);
 				g.setColor(Color.GREEN);
 				g.fillRect(x, y, (int) (width*progress), height);
-				
+
 				break;
 			default:
 				break;

@@ -5,13 +5,14 @@ import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.geom.Point2D;
 
+import com.game.display.Camera;
 import com.game.display.ui.UIWidget;
 import com.game.sprites.Animator;
 
 public class GameState extends State
 {
 	Game game;
-	
+
 	public enum GAMESTATE
 	{
 		RUNNING,
@@ -19,61 +20,55 @@ public class GameState extends State
 		PAUSED,
 		START
 	}
-	
-	
+
+
 	public GameState(Game game)
 	{
 		this.game = game;
 	}
-	
 
-	public void render(Graphics g) 
+
+	@Override
+	public void render(Graphics g)
 	{
 		switch(game.state)
 		{
 			case LOADING :
 				break;
-				
-				
+
+
 			case RUNNING :
-				g.setFont(new Font("Tahoma", Font.BOLD, 11)); 
+				g.setFont(new Font("Tahoma", Font.BOLD, 11));
 				renderProccess(g);
-				
+
 				drawDebugInfo(g);
-				
+
 				break;
-				
+
 			case PAUSED :
-				
+
 				renderProccess(g);
-				
-				
+
+
 				drawDebugInfo(g);
 				break;
-				
+
 			case START :
 				break;
 		}
-		
+
 		game.uiManager.render(g);
-		 
-		
+
+
 	}
-	
-	public void update() throws CloneNotSupportedException 
+
+	@Override
+	public void update() throws CloneNotSupportedException
 	{
-		
-		
-		Game.slowUpdate++;
-		
-		if(Game.slowUpdate == 60)
-		{
-			
-			game.chunkManager.longUpdateChunks(game);
-			game.player.longUpdate();
-			Game.slowUpdate = 0;
-		}
-		
+
+
+
+
 		switch(game.state)
 		{
 			case LOADING :
@@ -84,29 +79,37 @@ public class GameState extends State
 				}
 			}
 				break;
-				
+
 			case START :
 			{
 				break;
 			}
-				
+
 			case RUNNING :
-		
+				Game.slowUpdate++;
+
+				if(Game.slowUpdate == 60)
+				{
+
+					game.chunkManager.longUpdateChunks(game);
+					game.player.longUpdate();
+					Game.slowUpdate = 0;
+				}
 				Animator.updateFrames();
 				game.chunkManager.updateChunks();
-				
+
 				game.player.update();
 				game.gameCamera.updateCamera();
 				break;
-		
-			case PAUSED : 
+
+			case PAUSED :
 				break;
 		default:
 			break;
 		}
 		if(game.uiManager != null && game.uiManager.isLoaded)
 		{
-			
+
 			game.uiManager.checkState();
 			game.uiManager.update();
 		}
@@ -118,45 +121,53 @@ public class GameState extends State
 	{
 		game.state = st;
 	}
-	
+
 	public void setStateToRunning()
 	{
+		game.gameCamera = new Camera(game.player);
+		game.chunkManager = new ChunkManager(game, game.gamePath + Game.HierarichalFile("/chunks"));
+
 		game.chunkManager.creatures.add(game.player);
 		game.load = false;
 		game.gameCamera.changeFocus(game.player);
 		game.chunkManager.initialize();
-		
+
 		try {
 			game.chunkManager.checkLoadedChunks(game.player);
 		} catch (CloneNotSupportedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
+
 		game.state = GAMESTATE.RUNNING;
-		
+
 	}
-	
+
 	public static void setStateToRunning(UIWidget widget)
 	{
+
 		Game g = widget.game;
+
+		g.gameCamera = new Camera(g.player);
+		g.chunkManager = new ChunkManager(g, g.gamePath + Game.HierarichalFile("/chunks"));
+
 		g.chunkManager.creatures.add(g.player);
 		g.load = false;
 		g.gameCamera.changeFocus(g.player);
 		g.chunkManager.initialize();
-		
+
 		try {
 			g.chunkManager.checkLoadedChunks(g.player);
 		} catch (CloneNotSupportedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
+
 		g.state = GAMESTATE.RUNNING;
-		
+
 	}
-	
-	
+
+
 	public boolean isState(GAMESTATE state)
 	{
 		if(game.state == state)
@@ -171,9 +182,9 @@ public class GameState extends State
 		renderPlayer(g);
 		game.chunkManager.renderCreatures(g, game);
 		game.chunkManager.renderGUI(g);
-		
+
 	}
-	
+
 	private void renderPlayer(Graphics g)
 	{
 		game.player.drawSprite(g);
@@ -191,7 +202,7 @@ public class GameState extends State
 		}
 		*/
 	}
-	
+
 	private void drawDebugInfo(Graphics g)
 	{
 		g.setFont(new Font("Tahoma", Font.BOLD, 11));
@@ -200,7 +211,7 @@ public class GameState extends State
 		g.setColor(Color.GREEN);
 		g.drawString("FPS : " + game.fps, 0, 10);
 		game.drawTileInfo(g);
-		
+
 		g.setColor(Color.BLUE);
 		g.fillRect(Game.WIDTH - 100, 0, 200, 50);
 		g.setColor(Color.GREEN);

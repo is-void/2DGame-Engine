@@ -7,20 +7,20 @@ import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Scanner;
 
-import com.game.Game;
 import com.game.Assets;
+import com.game.Game;
 import com.game.entities.creatures.Creature;
 import com.game.entities.creatures.Player;
 import com.game.entities.tiles.Tile;
 
-public class Chunk 
+public class Chunk
 {
 	//public ArrayList<Entity> entities;
 	public ArrayList<Creature> creatures;
 	//static ArrayList<Entity> projectiles;
 	public ArrayList<Tile> tilesOld;
 	public Tile[] tiles = new Tile[64];
-	
+
 	public static boolean showHitbox = false;
 	public Point origin;
 	private File chunkData;
@@ -28,39 +28,39 @@ public class Chunk
 	public static final int HEIGHT = Tile.HEIGHT * 8;
 	private Game game;
 	private Chunk chunkAbove, chunkBelow, chunkLeft, chunkRight;
-	
-	
+
+
 	ArrayList<Tile> frontTiles;
 	ArrayList<Tile> backTiles;
-	
+
 	Entity player;
 	public Chunk(Game game, int x, int y, String path) throws FileNotFoundException
 	{
 		this.game = game;
 		//entities = new ArrayList<Entity>();
-		creatures = new ArrayList<Creature>();
-		tilesOld = new ArrayList<Tile>();
-		frontTiles = new ArrayList<Tile>();
-		backTiles = new ArrayList<Tile>();
+		creatures = new ArrayList<>();
+		tilesOld = new ArrayList<>();
+		frontTiles = new ArrayList<>();
+		backTiles = new ArrayList<>();
 		chunkData = new File(path);
-		
+
 		origin = new Point(x+WIDTH/2, y+HEIGHT/2);
-		
+
 		loadFile();
 		System.out.print("Created new chunk at " + x + ", " + y + " at filepath " + path);
-		
+
 	}
-	
+
 	public void loadFile() throws FileNotFoundException
 	{
 		Scanner s;
 		s = new Scanner(chunkData);
 		s.nextLine();
-		
+
 		for(int lineIndex = 0; lineIndex <= 7; lineIndex++)
 		{
 			String line = s.nextLine();
-			
+
 			int spot = 0;
 			for(int tileIndex = 0; tileIndex < 8; tileIndex++)
 			{
@@ -68,7 +68,7 @@ public class Chunk
 				{
 					int id = Integer.parseInt(line.substring(spot));
 					tiles[tileIndex + lineIndex * 8] = Assets.tileID.get(id).clone();
-					
+
 				} else
 				{
 					int id = -1;
@@ -82,24 +82,24 @@ public class Chunk
 				System.out.print(tiles[tileIndex + lineIndex * 8].x + ", " + tiles[tileIndex + lineIndex * 8].y );
 				tiles[tileIndex + lineIndex * 8].chunkIndex = tileIndex+lineIndex*8;
 				tiles[tileIndex + lineIndex * 8].setChunk(this);
-				
+
 
 			}
 		}
-		
-		
+
+
 		s.close();
-		
-		
-		
-		
-		
-		
+
+
+
+
+
+
 	}
-	
+
 	public void checkTileDependent() throws CloneNotSupportedException
 	{
-		
+
 		for(Tile t : tiles)
 		{
 			t.check();
@@ -108,24 +108,24 @@ public class Chunk
 		{
 			t.check();
 		}
-		
-		
-		
+
+
+
 	}
-	
+
 	public boolean isNearPlayer(Player player)
 	{
 		if(Game.dist(origin, player.getOrigin()) < (Math.sqrt(Math.pow(Game.WIDTH, 2) + Math.pow(Game.HEIGHT, 2) )))
 			return true;
 		return false;
-			
+
 	}
-	
+
 	public void chunkUpdate() throws CloneNotSupportedException
 	{
 		checkTileDependent();
 	}
-	
+
 	public Chunk chunkAbove()
 	{
 		if(chunkAbove != null)
@@ -141,7 +141,7 @@ public class Chunk
 		}
 		return null;
 	}
-	
+
 	public Chunk chunkBelow()
 	{
 		if(chunkBelow != null)
@@ -157,7 +157,7 @@ public class Chunk
 		}
 		return null;
 	}
-	
+
 	public Chunk chunkRight()
 	{
 		if(chunkRight != null)
@@ -173,7 +173,7 @@ public class Chunk
 		}
 		return null;
 	}
-	
+
 	public Chunk chunkLeft()
 	{
 		if(chunkLeft != null)
@@ -201,27 +201,27 @@ public class Chunk
 ;			case TILE :
 				entities.add(tilesOld.size()+1, e);
 				break;
-				
+
 			case CREATURE :
 				entities.add(e);
 			default:
 				break;
 			}
-		
+
 		}
 	}
 	*/
-	
+
 	public void longUpdate() throws CloneNotSupportedException
 	{
-		
+
 		for(Creature c : creatures)
 		{
 			c.longUpdate();
 		}
-		
+
 	}
-	
+
 	public void renderFrontTiles(Graphics g, Player player)
 	{
 		for(Tile t : frontTiles)
@@ -232,7 +232,7 @@ public class Chunk
 				t.drawSprite(g);
 		}
 	}
-	
+
 	public void renderBackTiles(Graphics g, Player player)
 	{
 		for(Tile t : backTiles)
@@ -241,7 +241,7 @@ public class Chunk
 				t.drawSprite(g);
 		}
 	}
-	
+
 	public void renderTiles(Graphics g)
 	{
 		for(Tile t : tiles  )
@@ -249,47 +249,47 @@ public class Chunk
 			t.drawSprite(g);
 		}
 	}
-	
+
 	public void addCreature(Entity e)
 	{
-		
+
 		switch(e.getType())
 		{
 		case PLAYER:
 			break;
 		case CREATURE :
 			creatures.add((Creature) e);
-		
+
 			break;
 		default :
 			break;
-			
+
 		}
 	}
-	
+
 	public void removeFirstCreature(Entity e)
 	{
 		if(creatures.size() > 1)
 			creatures.remove(e);
 	}
-	
+
 	public void clear()
 	{
 		creatures.clear();
-		
+
 	}
-	
-	
+
+
 	public void renderCreatures(Graphics g, Player player)
 	{
-		
+
 		for(Creature c : creatures)
 		{
-			
+
 			c.checkLoaded();
 			if(c.isRendered())
 			{
-				
+
 				c.drawSprite(g);
 				c.drawHealthBar(g);
 				if(showHitbox)
@@ -299,13 +299,13 @@ public class Chunk
 			}
 		}
 	}
-	
+
 	public void renderTiles()
 	{
-		
+
 	}
-	
-	
+
+
 	public void updateTiles()
 	{
 		for(Tile t : tiles)
@@ -318,7 +318,7 @@ public class Chunk
 			}
 		}
 	}
-	
+
 	public void updateCreatures()
 	{
 		for(Creature c : creatures)
@@ -330,7 +330,7 @@ public class Chunk
 			}
 		}
 	}
-	
+
 	public void updateHealthBars()
 	{
 		for(Creature c : creatures)
@@ -338,7 +338,7 @@ public class Chunk
 			c.updateHealthBar();
 		}
 	}
-	
+
 	public void renderHealthBars(Graphics g)
 	{
 		for(Creature c : creatures)

@@ -8,7 +8,9 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferStrategy;
 import java.awt.image.BufferedImage;
+import java.io.File;
 import java.io.FileNotFoundException;
+import javax.swing.JOptionPane;
 
 import com.game.GameState.GAMESTATE;
 import com.game.data.Settings;
@@ -32,92 +34,89 @@ public class Game extends Canvas implements Runnable {
 	public Thread gameThread;
 	public Camera gameCamera;
 	public Player player;
-	BufferedImage cursor;
+	public BufferedImage cursor = ImageLoader.loadImage(Game.HierarichalFile("/res/textures/Cursor.png"));
 	public ChunkManager chunkManager;
 	public Tile highlightedTile;
 	public GameState gameState;
 	public boolean load = false;
 	public double loadingProgress;
-	public GAMESTATE state;
+	public GAMESTATE state = GAMESTATE.RUNNING;
 	public UIManager uiManager;
-	
+
 	public Settings settings;
-	
+	public File jarPath = new File(Game.class.getProtectionDomain().getCodeSource().getLocation().getPath());
+	public String gamePath = Game.HierarichalFile(jarPath.getParent());
+
 	public static int slowUpdate = 0;
-	
-	
-	
-	
-	
+
+
+
+
+
 	private static final long serialVersionUID = -20503614128161992L;
+
 
 	public Game() {
 		// setup
-		
+
 		try {
-			settings = new Settings(this, "/data/settings.dat");
+			settings = new Settings(this, Game.HierarichalFile("/res/data/settings.dat"));
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
+
 		dimensions = new Dimension(WIDTH, HEIGHT);
-		
+
 		this.setPreferredSize(dimensions);
 		this.setMinimumSize(dimensions);
 		this.setMaximumSize(dimensions);
-		
+
 		new Window("2D Game", this);
 
 		this.addKeyListener(new KeyInput(this));
 		this.addMouseListener(new MouseInput(this));
 		this.addMouseMotionListener(new MouseMovement(this));
 		this.setFocusable(true);
-		
+
 	}
 
-	public static void main(String[] args) {
-		new Game();
-	}
-	
+
+
 	public void start() throws CloneNotSupportedException {
+		try
+		{
 		
 		state = GameState.GAMESTATE.LOADING;
-		
+
 		gameThread = new Thread(this);
 		gameState = new GameState(this);
-		gameCamera = new Camera(player);
+
 		uiManager = new UIManager(this);
 		
-		cursor = ImageLoader.loadImage("/textures/Cursor.png");
 		IS_RUNNING = true;
+
+		ShowMessageBox(gamePath);
 		
 		
-		gameThread.start();
-		
-		chunkManager = new ChunkManager(this, "/chunks");
-		
+
 		//chunkManager.initialize();
-		
-		
+
+
 		Assets.initialize(this);
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
+		} catch(Throwable t)
+		{
+			ShowErrorMessageBox(t);
+		}
+
+		gameThread.start();
+
 		//state = GameState.GAMESTATE.RUNNING;
-		
+
 		//player.setLocation(new Point(ChunkManager.Chunks.get(0).origin.x + 10, ChunkManager.Chunks.get(0).origin.y + 10));
-		
-		
-		
+
+
+
 	}
 
 	@Override
@@ -146,7 +145,7 @@ public class Game extends Canvas implements Runnable {
 			if (IS_RUNNING)
 			{
 				render();
-				
+
 			}
 			frames++;
 
@@ -158,7 +157,7 @@ public class Game extends Canvas implements Runnable {
 			}
 		}
 	}
-	
+
 	public void stop() {
 		try {
 			gameThread.join();
@@ -178,32 +177,32 @@ public class Game extends Canvas implements Runnable {
 		}
 
 		Graphics g = buffer.getDrawGraphics();
-		
-		
+
+
 		g.setColor(Color.white);
 		g.fillRect(0, 0, WIDTH, HEIGHT);
-		
+
 		gameState.render(g);
-		
-		
+
+
 		drawCursor(g);
 		g.dispose();
 		buffer.show();
-		
+
 
 	}
-	
-	private void update() throws CloneNotSupportedException 
+
+	private void update() throws CloneNotSupportedException
 	{
 		gameState.update();
-		
+
 	}
 	private void drawCursor(Graphics g)
 	{
 		if(player != null)
 			g.drawImage(cursor, (int) player.localMouseX-cursor.getWidth()/2, (int) player.localMouseY-cursor.getHeight()/2, null);
 	}
-	
+
 	public void drawTileInfo(Graphics g)
 	{
 		if(highlightedTile != null)
@@ -233,10 +232,10 @@ public class Game extends Canvas implements Runnable {
 			return true;
 		return false;
 	}
-	
-	public static boolean inBetween(Point2D val, Point2D low, Point2D high) 
+
+	public static boolean inBetween(Point2D val, Point2D low, Point2D high)
 	{
-		
+
 		Rectangle2D.Double rect = new Rectangle2D.Double(low.getX(), low.getY(), high.getX(), high.getY());
 		if(rect.contains(val))
 		{
@@ -259,17 +258,37 @@ public class Game extends Canvas implements Runnable {
 			return Math.abs(max) * -1;
 		return num;
 	}
-	
+
 	public static double dist(double x, double y, double x2, double y2)
 	{
 		return Math.sqrt(Math.pow(x-x2, 2) + Math.pow(y-y2, 2));
-		
+
 	}
-	
-	
+
+
 	public static double dist(Point2D d1, Point2D d2)
 	{
 		return d1.distance(d2);
-		
+
+	}
+
+	public static String HierarichalFile(String s)
+	{
+
+		return s.replaceAll("//", File.separator);
+
+	}
+	
+	public static void ShowMessageBox(String s)
+	{
+		 JOptionPane.showMessageDialog(null, s);
+	}
+	
+	public static void ShowErrorMessageBox(Throwable t)
+	{
+		Game.ShowMessageBox(
+		        "Error! " + t.getStackTrace() + "\n " + t.getClass() + "\n " + t.getLocalizedMessage() 
+		        + "\n " + t.getCause() + "\n In " + t.getStackTrace()[0].getClassName() + "At line " + t.getStackTrace()[0].getLineNumber() +
+		        "\nIn method " + t.getStackTrace()[0].getMethodName() + "\n ");
 	}
 }

@@ -4,15 +4,15 @@ import java.awt.Graphics;
 
 import com.game.display.ui.UIElement;
 
-public class Menu 
+public class Menu
 {
 	UIElement[] menuElements;
-	
+
 	public Menu(UIElement[] menuElements)
 	{
 		this.menuElements = menuElements;
 	}
-	
+
 	public void displayMenu(Graphics g)
 	{
 		for(UIElement e : menuElements)
@@ -20,7 +20,7 @@ public class Menu
 			e.render(g);
 		}
 	}
-	
+
 	public void updateMenu()
 	{
 		for(UIElement e : menuElements)

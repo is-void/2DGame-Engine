@@ -16,7 +16,7 @@ public class Tile extends Entity
 	public static int check = 0;
 	public int chunkIndex;
 	public boolean drawHitbox;
-	
+
 	public Tile tileAbove;
 	public Tile tileBelow;
 	public Tile tileRight;
@@ -25,7 +25,7 @@ public class Tile extends Entity
 	public Tile tileBottomLeft;
 	public Tile tileTopRight;
 	public Tile tileTopLeft;
-	
+
 	enum TileType
 	{
 		GRASS,
@@ -36,7 +36,7 @@ public class Tile extends Entity
 		OTHER
 	}
 	public TileType type;
-	
+
 	public Tile(Game game, boolean col)
 	{
 		super(game, col);
@@ -45,20 +45,21 @@ public class Tile extends Entity
 	{
 		super(game, anim, 0, 0, collison);
 		anim.setOwner(this);
-		
-		
+
+
 	}
-	
+
 	public Tile(Game game, Animator anim, boolean collison, int x, int y)
 	{
 		super(game, anim, x, y, collison);
 		anim.setOwner(this);
 		//isStatic = true;
-		
+
 	}
-	
-	
-	public void drawSprite(Graphics g) 
+
+
+	@Override
+	public void drawSprite(Graphics g)
 	{
 		super.drawSprite(g);
 		g.setColor(Color.red);
@@ -69,53 +70,54 @@ public class Tile extends Entity
 			game.highlightedTile = this;
 		if(drawHitbox)
 			drawHitbox(g);
-		
-		
+
+
 	}
-	
+
+	@Override
 	public void update() {
-		
+
 		super.update();
 		checkTileType(this);
-		
+
 	}
-	
+
 	public static void checkTileType(Tile t)
 	{
 		String nam = t.animator.sprite.name.substring(0, t.animator.sprite.name.indexOf("_"));
-		 
+
 		switch(nam)
 		{
 			case "grass" :
 				t.type = TileType.GRASS;
 				break;
-			
+
 			case "watergrass" :
 			case "water" :
 				t.type = TileType.WATER;
 				break;
 
-				
+
 			case "grasspath" :
-			case "path" : 
+			case "path" :
 				t.type = TileType.GRASSPATH;
 				break;
-				
-			default : 
+
+			default :
 				t.type = TileType.OTHER;
 				return;
 		}
-		
+
 	}
-	
+
 	public void check() throws CloneNotSupportedException
 	{
 		if(scheduledUpdate)
 		{
 				tileTopRight = tileTopLeft = tileBottomRight = tileBottomLeft = tileAbove = tileBelow = tileRight = tileLeft = null;
-			
+
 			checkTileType(this);
-			
+
 			if(chunkIndex <= 7)
 			{
 				if(chunk.chunkAbove() != null)
@@ -125,14 +127,14 @@ public class Tile extends Entity
 				{
 					tileAbove = null;
 				}
-				
+
 			} else
-			{		
+			{
 				tileAbove = chunk.tiles[chunkIndex-8];
 			}
-			
-			
-			
+
+
+
 			if(chunkIndex >= 56)
 			{
 				if(chunk.chunkBelow() != null)
@@ -146,8 +148,8 @@ public class Tile extends Entity
 			{
 				tileBelow = chunk.tiles[chunkIndex + 8];
 			}
-			
-			
+
+
 			if(chunkIndex  % 8 == 0)
 			{
 				if(chunk.chunkLeft() != null)
@@ -161,8 +163,8 @@ public class Tile extends Entity
 			{
 				tileLeft = chunk.tiles[chunkIndex-1];
 			}
-			
-			
+
+
 			if((chunkIndex+1) % 8 == 0)
 			{
 				if(chunk.chunkRight() != null)
@@ -178,57 +180,57 @@ public class Tile extends Entity
 			}
 			scheduledUpdate = false;
 		}
-		
-		
+
+
 		/*
 		switch(type)
 		{
 			case GRASS :
-				 
-				
+
+
 				if(tileAbove != null)
 					switch(tileAbove.animator.sprite.name)
 					{
 						case "path_1" :
 							animator.setSprite(Assets.grasspath_down_1.clone());
 							return;
-						
+
 						case "water_1" :
 							animator.setSprite(Assets.watergrass_down_1.clone());
 							doCollision(true);
 							return;
 					}
-					
-				
+
+
 				if(tileBelow != null)
 					switch(tileBelow.animator.sprite.name)
 					{
 						case "path_1" :
 							animator.setSprite(Assets.grasspath_up_1.clone());
 							return;
-							
-						case "water_1" :							
+
+						case "water_1" :
 							animator.setSprite(Assets.watergrass_up_1.clone());
 							doCollision(true);
 							return;
 					}
 
-				
+
 				if(tileLeft != null)
 					switch(tileLeft.animator.sprite.name)
 					{
 						case "path_1" :
 							animator.setSprite(Assets.grasspath_right_1.clone());
 							return;
-							
-						case "water_1" :						
+
+						case "water_1" :
 							animator.setSprite(Assets.watergrass_right_1.clone());
 							doCollision(true);
 							return;
 					}
 
-				
-				
+
+
 				if(tileRight != null)
 					switch(tileRight.animator.sprite.name)
 					{
@@ -242,11 +244,11 @@ public class Tile extends Entity
 					}
 
 				break;
-				
-			
+
+
 			case PATH :
 			{
-				
+
 				if(tileAbove != null)
 				{
 					if(tileAbove.tileLeft != null)
@@ -262,7 +264,7 @@ public class Tile extends Entity
 								}
 							}
 						}
-						
+
 						if(tileAbove.tileRight.type == TileType.GRASS)
 						{
 							if(tileAbove.type == TileType.GRASSPATH)
@@ -274,9 +276,9 @@ public class Tile extends Entity
 							}
 						}
 					}
-					
+
 				}
-				
+
 				if(tileBelow != null)
 				{
 					if(tileBelow.tileLeft != null)
@@ -291,7 +293,7 @@ public class Tile extends Entity
 								}
 							}
 						}
-						
+
 						if(tileBelow.tileRight.type == TileType.GRASS)
 						{
 							if(tileBelow.type == TileType.GRASSPATH)
@@ -303,32 +305,32 @@ public class Tile extends Entity
 							}
 						}
 					}
-					
+
 				}
 				break;
 			}
-				
+
 			case WATER :
 			{
-				
+
 				if(tileAbove != null)
 				{
 					if(tileAbove.tileLeft.type == TileType.GRASS)
 						{
-							
+
 							if(tileAbove.type == TileType.WATERPATH)
 							{
-								
+
 								if(tileLeft.type == TileType.WATERPATH)
 								{
-									
+
 									tileAbove.tileLeft.animator.setSprite(Assets.watergrass_topLeft_1);
 									tileAbove.tileLeft.doCollision(true);
-									
+
 								}
 							}
 						}
-						
+
 					if(tileAbove.tileRight.type == TileType.GRASS)
 					{
 						if(tileAbove.type == TileType.WATERPATH)
@@ -340,10 +342,10 @@ public class Tile extends Entity
 							}
 						}
 					}
-					
-					
+
+
 				}
-				
+
 				if(tileBelow != null)
 				{
 					if(tileBelow.tileLeft != null)
@@ -359,7 +361,7 @@ public class Tile extends Entity
 								}
 							}
 						}
-						
+
 						if(tileBelow.tileRight.type == TileType.GRASS)
 						{
 							if(tileBelow.type == TileType.WATERPATH)
@@ -372,11 +374,11 @@ public class Tile extends Entity
 							}
 						}
 					}
-					
+
 				}
 				break;
 			}
-			
+
 			case WATERPATH :
 			{
 				if(tileAbove != null && tileAbove.type == TileType.WATERPATH)
@@ -397,16 +399,18 @@ public class Tile extends Entity
 		}
 		*/
 	}
-	
+
+	@Override
 	public EntityType getType()
 	{
 		return EntityType.TILE;
 	}
-	
-	
+
+
+	@Override
 	public Tile clone()
 	{
 		return new Tile(game, new Animator(getAnimator().getSprite()), isStatic);
 	}
-	
+
 }

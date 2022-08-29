@@ -11,28 +11,30 @@ public class MouseMovement extends MouseMotionAdapter
 {
 	Game game;
 	Player player;
-	
+
 	public MouseMovement(Game game)
 	{
 		this.game = game;
 		player = game.player;
 	}
-	
+
+	@Override
 	public void mouseDragged(MouseEvent e)
 	{
 		Point2D.Float local = new Point2D.Float(e.getX(), e.getY());
-		
+
 		player.localMouseX = local.x;
 		player.localMouseY = local.y;
-		
+
 	}
-	
+
+	@Override
 	public void mouseMoved(MouseEvent e)
 	{
 		Point2D.Float local = new Point2D.Float(e.getX(), e.getY());
-		
+
 		player.localMouseX = local.x;
 		player.localMouseY = local.y;
-		
+
 	}
 }
