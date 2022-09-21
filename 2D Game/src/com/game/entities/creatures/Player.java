@@ -33,6 +33,7 @@ public class Player extends Creature
 	@Override
 	public void drawSprite(Graphics g)
 	{
+		game.gameCamera.updateCamera();
 		super.drawSprite(g);
 		super.drawHitbox(g);
 
@@ -46,8 +47,9 @@ public class Player extends Creature
 
 		mouseX = p.x;
 		mouseY = p.y;
-
+		
 		super.update();
+		
 	}
 
 

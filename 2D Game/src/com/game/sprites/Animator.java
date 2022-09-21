@@ -4,6 +4,7 @@ package com.game.sprites;
 import java.awt.Graphics;
 import java.util.ArrayList;
 
+import com.game.Game;
 import com.game.display.Camera;
 import com.game.display.ui.UIWidget;
 import com.game.entities.Entity;
@@ -22,6 +23,7 @@ public class Animator
 	public ArrayList<Sprite> overlays = new ArrayList<>();
 	public int maxOverlayAmount = 4;
 	public int scale = 1;
+	private Game game;
 
 	enum ObjectType
 	{
@@ -80,11 +82,13 @@ public class Animator
 			case "Creature":
 			case "Player":
 				objTyp = ObjectType.ENTITY;
+				game = ((Entity) e).game;
 				break;
 
 			case "UIWidget" :
 			case "Button" :
 				objTyp = ObjectType.UIWIDGET;
+				game = ((UIWidget) e).game;
 				break;
 			default :
 				break;
@@ -97,10 +101,10 @@ public class Animator
 		switch(objTyp)
 		{
 		case ENTITY:
-			g.drawImage(getSprite().getCurrentFrame(), ((Entity) owner).getLocalX(), ((Entity) owner).getLocalY(), (int) Math.ceil(width * scale * Camera.zoom),   (int) (Math.ceil(height * scale * Camera.zoom)), null);
+			g.drawImage(getSprite().getCurrentFrame(), (int) Math.floor(((Entity) owner).getLocalX()), (int) Math.floor(((Entity) owner).getLocalY()), (int) Math.floor(width * scale * game.gameCamera.zoom),   (int) Math.floor((height * scale * game.gameCamera.zoom)), null);
 			for(int s = overlays.size()-1; s > -1; s--)
 			{
-				g.drawImage(overlays.get(s).getCurrentFrame(), ((Entity) owner).getLocalX(), ((Entity) owner).getLocalY(), (int) Math.ceil(width * scale * Camera.zoom),   (int) (Math.ceil(height * scale * Camera.zoom)), null);
+				g.drawImage(overlays.get(s).getCurrentFrame(), (int) Math.floor(((Entity) owner).getLocalX()) , (int) Math.floor(((Entity) owner).getLocalY() ), (int) (width * scale * game.gameCamera.zoom),   (int) ((height * scale * game.gameCamera.zoom)), null);
 			}
 			break;
 		case OTHER:

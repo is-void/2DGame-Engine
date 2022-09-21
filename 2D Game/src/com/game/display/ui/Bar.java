@@ -8,7 +8,7 @@ import com.game.entities.creatures.Creature;
 
 public class Bar implements UIElement
 {
-	private int x, y;
+	private float x, y;
 	private int width, height;
 	private Creature target;
 	private double progress;
@@ -130,21 +130,21 @@ public class Bar implements UIElement
 			{
 			case HEALTH :
 				g.setColor(Color.BLACK);
-				g.drawRect(x-1, y-1, width+1, height+1);
+				g.drawRect((int) Math.floor(x-1), (int)Math.floor(y-1), width+1, height+1);
 				g.setColor(Color.RED);
-				g.fillRect(x, y, width, height);
+				g.fillRect((int)Math.floor(x), (int) Math.floor(y), width, height);
 				g.setColor(Color.GREEN);
-				g.fillRect(x, y, (int) (width*progress), height);
+				g.fillRect((int)Math.floor(x), (int) Math.floor(y), (int) (width*progress), height);
 				break;
 			case ABILITY:
 				break;
 			case LOADING:
 				g.setColor(Color.BLACK);
-				g.drawRect(x-1, y-1, width+1, height+1);
+				g.drawRect((int)Math.floor(x-1), (int) Math.floor(y-1), width+1, height+1);
 				g.setColor(Color.RED);
-				g.fillRect(x, y, width, height);
+				g.fillRect((int)Math.floor(x), (int) Math.floor(y), width, height);
 				g.setColor(Color.GREEN);
-				g.fillRect(x, y, (int) (width*progress), height);
+				g.fillRect((int)Math.floor(x), (int) Math.floor(y), (int) (width*progress), height);
 
 				break;
 			default:

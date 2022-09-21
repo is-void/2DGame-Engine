@@ -7,17 +7,17 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 
 import com.game.Game;
-import com.game.display.Camera;
+
 import com.game.entities.creatures.Creature;
 import com.game.sprites.Animator;
 
 public abstract class Entity
 {
-	protected Game game;
+	public Game game;
 	protected float x;  //Game coordinates
 	protected float y;
-	protected int localX; //Screen Location x
-	protected int localY; //Screen location Y
+	protected float localX; //Screen Location x
+	protected float localY; //Screen location Y
 	protected float maxXVel;  //The maximum velocity
 	protected float maxYVel;
 	protected float xVel, yVel; // The actual velocity
@@ -30,13 +30,13 @@ public abstract class Entity
 	protected Animator animator;
 	private boolean canMoveLeft = true, canMoveRight = true, canMoveUp = true, canMoveDown = true;
 	private Point2D.Float origin;
+	private Point2D localOrigin;
 	private boolean canCollide;
 	public boolean up, down, left, right;
 	public boolean isStatic = false;
 	public Chunk chunk;
 	public int hitboxXOffset, hitboxYOffset;
 	public boolean showHitbox = false;
-
 	public boolean load = false;
 	public boolean scheduledUpdate = true;
 
@@ -53,7 +53,7 @@ public abstract class Entity
 
 
 	private boolean isRendered = false;
-
+	
 	public Entity(Game game, boolean col)
 	{
 		this.game = game;
@@ -61,44 +61,27 @@ public abstract class Entity
 		x = 0;
 		y = 0;
 		origin = new Point2D.Float(x, y);
+		localOrigin = new Point2D.Float(localX, localY);
 
 	}
+	
 	public Entity(Game game, Animator anim, boolean col)
 	{
-		this.game = game;
+		this(game, col);
 		animator = anim;
 		defaultHitbox();
 		anim.setOwner(this);
-		canCollide = col;
-		x = 0;
-		y = 0;
-		origin = new Point2D.Float(x, y);
-
 	}
-	public Entity(Game game, Animator anim, float x2, float y2)
+	public Entity(Game game, Animator anim, float x, float y, boolean col)
 	{
-		this.game = game;
-		animator = anim;
-		defaultHitbox();
-		this.x = x2;
-		this.y = y2;
-		origin = new Point2D.Float(x2, y2);
-		anim.setOwner(this);
-		doCollision(false);
-	}
-
-	public Entity(Game game, Animator anim, int x, int y, boolean coll)
-	{
-		this.game = game;
-		animator = anim;
-
-		defaultHitbox();
+		this(game, anim, col);
 		this.x = x;
 		this.y = y;
 		origin = new Point2D.Float(x, y);
-		anim.setOwner(this);
-		doCollision(coll);
+		
 	}
+
+	
 
 	public Chunk getChunk()
 	{
@@ -125,17 +108,19 @@ public abstract class Entity
 	{
 		hitbox = new Rectangle2D.Float(x, y, animator.getWidth(), animator.getHeight());
 	}
-	public void drawHitbox(Graphics g)
+	
+	public void drawOrigin(Graphics g)
 	{
-		g.setColor(Color.red);
-		g.drawRect((int) (Game.WIDTH/2 - (Camera.X-hitbox.x) * Camera.zoom), (int) (Game.HEIGHT/2 - (Camera.Y-hitbox.y) * Camera.zoom), (int) ((getHitbox().width) * Camera.zoom), (int) ( (getHitbox().height) * Camera.zoom));
-
+		g.setColor(Color.BLACK);
+		g.drawOval((int)(localOrigin.getX()), (int)(localOrigin.getY()), 3, 3);
+		
 	}
 
 	public void drawSprite(Graphics g)
 	{
-			localX = (int) (Game.WIDTH/2 - (Camera.X-x) * Camera.zoom);
-			localY = (int) (Game.HEIGHT/2 - (Camera.Y-y) * Camera.zoom);
+			
+			localX = (Game.WIDTH/2 - (game.gameCamera.X-origin.x+animator.getWidth()/2) * game.gameCamera.zoom);
+			localY = (Game.HEIGHT/2 - (game.gameCamera.Y-origin.y+animator.getHeight()/2) * game.gameCamera.zoom);
 			hitbox.x = x + hitboxXOffset;
 			hitbox.y = y + hitboxYOffset;
 
@@ -147,11 +132,18 @@ public abstract class Entity
 			}
 
 	}
-
-
+	
+	public void drawHitbox(Graphics g)
+	{
+		g.setColor(Color.red);
+		g.drawRect((int)Math.floor(localX + hitboxXOffset * game.gameCamera.zoom), (int) Math.floor(localY + hitboxYOffset * game.gameCamera.zoom), (int) ( (getHitbox().width) * game.gameCamera.zoom), (int) ( (getHitbox().height) * game.gameCamera.zoom));
+		drawOrigin(g);
+	}
+	
+	
 	public void update()
 	{
-		getAnimator().update();
+		
 		if(!isStatic)
 		{
 			if(xVel > 0)
@@ -176,7 +168,9 @@ public abstract class Entity
 
 		}
 
-		setOrigin(getX()+getAnimator().getWidth()/2, getY() + getAnimator().getHeight()/2);
+		origin.setLocation(hitbox.x + hitbox.width/2, hitbox.y + hitbox.height/2);
+		localOrigin.setLocation(localX + ((hitbox.width + hitboxXOffset) * game.gameCamera.zoom)/2, localY + ((hitbox.height + hitboxYOffset) * game.gameCamera.zoom)/2);
+		getAnimator().update();
 
 	}
 
@@ -218,7 +212,7 @@ public abstract class Entity
 
 	public void checkLoaded()
 	{
-		if(Game.dist(origin.x, origin.y, Camera.X, Camera.Y) < Game.WIDTH/2)
+		if(Game.dist(origin.x, origin.y, game.gameCamera.X, game.gameCamera.Y) < Game.WIDTH/2)
 		{
 			isRendered = true;
 		} else
@@ -228,12 +222,9 @@ public abstract class Entity
 
 	}
 
-	public void setOrigin(float d, float e)
-	{
-		origin.setLocation(d, e);
-	}
+	
 
-	public Point2D getOrigin()
+	public Point2D.Float getOrigin()
 	{
 		if(origin != null)
 			return origin;
@@ -250,11 +241,11 @@ public abstract class Entity
 	{
 		return animator;
 	}
-	public int getLocalX() {
+	public float getLocalX() {
 		return localX;
 	}
 
-	public int getLocalY() {
+	public float getLocalY() {
 		return localY;
 	}
 

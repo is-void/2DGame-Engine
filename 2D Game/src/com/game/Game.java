@@ -42,7 +42,7 @@ public class Game extends Canvas implements Runnable {
 	public double loadingProgress;
 	public GAMESTATE state = GAMESTATE.RUNNING;
 	public UIManager uiManager;
-
+	public boolean capFps = true;
 	public Settings settings;
 	public File jarPath = new File(Game.class.getProtectionDomain().getCodeSource().getLocation().getPath());
 	public String gamePath = Game.HierarichalFile(jarPath.getParent());
@@ -122,38 +122,53 @@ public class Game extends Canvas implements Runnable {
 	@Override
 	public void run() {
 		this.requestFocus();
-
-		long lastTime = System.nanoTime();
-		double amountOfTicks = 75.0;
-		double ns = 1000000000 / amountOfTicks;
+		
+		long lastime = System.nanoTime();
+		double AmountOfTicks = 60;
+		double AmountOfRenders = 75;
+		double rs = 1000000000 / AmountOfRenders;
+		double ns = 1000000000 / AmountOfTicks;
 		double delta = 0;
-		long timer = System.currentTimeMillis();
+		double delta2 = 0;
 		int frames = 0;
-		while (IS_RUNNING) {
+		int updates = 0;
+		double time = System.currentTimeMillis();
+		double time2 = System.currentTimeMillis();
+		
+		while(IS_RUNNING == true) {
 			long now = System.nanoTime();
-			delta += (now - lastTime) / ns;
-			lastTime = now;
-			while (delta >= 1) {
+			delta += (now - lastime) / ns;
+			delta2 += (now - lastime) / rs;
+			lastime = now;
+			
+			
+			if(delta >= 1) {
 				try {
 					update();
 				} catch (CloneNotSupportedException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
+				
+				updates++;
 				delta--;
+				if(System.currentTimeMillis() - time >= 1000) {
+					System.out.println("updates:" + updates);
+					time += 1000;
+					updates = 0;
+				}
 			}
-			if (IS_RUNNING)
-			{
+			if(!capFps || delta2 >= 1) {
 				render();
-
-			}
-			frames++;
-
-			if (System.currentTimeMillis() - timer > 1000) {
-				timer += 1000;
-				System.out.println("FPS: " + frames);
-				fps = frames;
-				frames = 0;
+				
+				frames++;
+				delta2--;
+				if(System.currentTimeMillis() - time2 >= 1000) {
+					System.out.println("fps:" + frames);
+					fps = frames;
+					time2 += 1000;
+					frames = 0;
+				}
 			}
 		}
 	}
@@ -195,6 +210,9 @@ public class Game extends Canvas implements Runnable {
 	private void update() throws CloneNotSupportedException
 	{
 		gameState.update();
+		if(gameCamera != null)
+			gameCamera.updateCamera();
+		
 
 	}
 	private void drawCursor(Graphics g)

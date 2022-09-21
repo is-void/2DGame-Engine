@@ -39,8 +39,9 @@ public class GameState extends State
 
 			case RUNNING :
 				g.setFont(new Font("Tahoma", Font.BOLD, 11));
+				
 				renderProccess(g);
-
+				
 				drawDebugInfo(g);
 
 				break;
@@ -87,19 +88,21 @@ public class GameState extends State
 
 			case RUNNING :
 				Game.slowUpdate++;
+				
 
 				if(Game.slowUpdate == 60)
 				{
-
+					
 					game.chunkManager.longUpdateChunks(game);
 					game.player.longUpdate();
 					Game.slowUpdate = 0;
 				}
 				Animator.updateFrames();
 				game.chunkManager.updateChunks();
-
+				
 				game.player.update();
-				game.gameCamera.updateCamera();
+				
+				
 				break;
 
 			case PAUSED :
@@ -178,10 +181,12 @@ public class GameState extends State
 	}
 	private void renderProccess(Graphics g)
 	{
+		
 		game.chunkManager.renderTiles(g);
 		renderPlayer(g);
 		game.chunkManager.renderCreatures(g, game);
 		game.chunkManager.renderGUI(g);
+		
 
 	}
 
@@ -190,6 +195,7 @@ public class GameState extends State
 		game.player.drawSprite(g);
 		if(game.player.displayHitbox)
 			game.player.drawHitbox(g);
+		
 		if(game.player.getHitbox().contains(new Point2D.Float(game.player.localMouseX, game.player.localMouseY)))
 			game.player.drawHitbox(g);
 		/*
@@ -216,5 +222,9 @@ public class GameState extends State
 		g.fillRect(Game.WIDTH - 100, 0, 200, 50);
 		g.setColor(Color.GREEN);
 		g.drawString("" + (int)(game.player.getX()) + "," + (int)(game.player.getY()) , Game.WIDTH - 100, 50);
+		
+		g.drawLine(0, Game.HEIGHT/2, Game.WIDTH, Game.HEIGHT/2);
+		
+		g.drawLine(Game.WIDTH/2, 0, Game.WIDTH/2, Game.HEIGHT);
 	}
 }

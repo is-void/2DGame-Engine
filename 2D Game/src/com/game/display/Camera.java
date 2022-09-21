@@ -2,31 +2,32 @@ package com.game.display;
 
 import java.awt.geom.Point2D;
 
-import com.game.entities.creatures.Creature;
+import com.game.entities.Entity;
 
 public class Camera
 {
-	public static double X, Y;
-	public static Point2D COORDINATES;
-	public static float zoom = 3;
+	public float X, Y;
+	private Point2D.Float COORDINATES;
+	public float zoom = 3;
 
 	public boolean zoomIn;
 	public boolean zoomOut;
 	private float zoomAmount = 0.05f;
 
-	private Creature focus;
+	private Entity focus;
 
-	public Camera(Creature e)
+	public Camera(Entity e)
 	{
 		focus = e;
 	}
 	public void updateCamera()
 	{
-		COORDINATES = focus.getOrigin();
-
-		X = COORDINATES.getX();
-		Y = COORDINATES.getY();
 		checkZoom();
+		COORDINATES = focus.getOrigin();
+		
+		X = (float) (COORDINATES.getX());
+		Y = (float) (COORDINATES.getY());
+		
 
 		/*
 		System.out.println("Camera X = " + X +"/nCamera Y = " + Y );
@@ -34,11 +35,15 @@ public class Camera
 		*/
 	}
 
-	public void changeFocus(Creature f)
+	public void changeFocus(Entity f)
 	{
 		focus = f;
 	}
-
+	
+	public Entity getFocus() {
+		return focus;
+	}
+	
 	public Point2D.Float localToGamePoint(Point2D.Float p)
 	{
 		Point2D.Float gamePoint = new Point2D.Float(focus.getX() + (p.x - focus.getLocalX())/zoom, focus.getY() + (p.y - focus.getLocalY())/zoom);

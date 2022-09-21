@@ -51,7 +51,7 @@ public abstract class Creature extends Entity
 
 	public Creature(Game game, Animator anim, float hp, float x, float y)
 	{
-		super(game, anim, x, y);
+		super(game, anim, x, y, true);
 
 		healthBar = new Bar(game, 80, 10, this, BarType.HEALTH);
 		health = hp;
@@ -86,7 +86,6 @@ public abstract class Creature extends Entity
 	{
 		checkState();
 		prepareMovement();
-		heal(0.1f);
 		checkCollsion();
 		super.update();
 	}
@@ -175,20 +174,21 @@ public abstract class Creature extends Entity
 
 		if(testHitbox.intersects(e.getHitbox()))
 		{
-
+			System.out.print("Colliding while trying to move " + direction);
+			game.highlightedTile = e;
 			switch(direction)
 			{
+			
 				case UP :
 					setCanMoveUp(false);
-					setYWithHitbox(e.getY() + e.getHitbox().height);
+					setYWithHitbox(e.getY() + e.getHitbox().height+1);
 					break;
 
 				case DOWN :
 					setCanMoveDown(false);
-					setYWithHitbox(e.getHitbox().y - getHitbox().height);
+					setYWithHitbox(e.getHitbox().y - getHitbox().height-1);
 					break;
 				case LEFT :
-					System.out.print("left test");
 					setCanMoveLeft(false);
 					setXWithHitbox(e.getX() + e.getHitbox().width);
 					break;
@@ -199,119 +199,105 @@ public abstract class Creature extends Entity
 
 				case DOWNLEFT :
 				{
-					Point2D.Float dl = new Point2D.Float();
-					dl.setLocation(testHitbox.getMinX(), testHitbox.getMaxY());
-
-					Point2D.Float urOther = new Point2D.Float();
-					urOther.setLocation(e.getHitbox().getMaxX(), e.getHitbox().getMinY());
-
-					float xDist = Math.abs(dl.x - urOther.x);
-					float yDist = Math.abs(dl.y - urOther.y);
-
-					if(xDist > yDist)
-					{
-						setCanMoveDown(false);
-						setYWithHitbox(e.getHitbox().y - getHitbox().height);
-						break;
-					}
-					if(yDist > xDist)
+					
+					testHitbox.setFrame(new Rectangle2D.Float(hitbox.x, hitbox.y + yVel, (float)getHitbox().getWidth(), (float)getHitbox().getHeight()));
+					if(!testHitbox.intersects(e.getHitbox()))
 					{
 						setCanMoveLeft(false);
 						setXWithHitbox(e.getX() + e.getHitbox().width);
 						break;
 					}
+					
+					testHitbox.setFrame(new Rectangle2D.Float(hitbox.x + xVel, hitbox.y, (float)getHitbox().getWidth(), (float)getHitbox().getHeight()));
+					if(!testHitbox.intersects(e.getHitbox()))
+					{
+						setCanMoveDown(false);
+						setYWithHitbox(e.getHitbox().y - getHitbox().height-1);
+						break;
+					}
 					setCanMoveLeft(false);
 					setXWithHitbox(e.getX() + e.getHitbox().width);
-					setYWithHitbox(e.getHitbox().y - getHitbox().height);
-					break;
-
+					setCanMoveDown(false);
+					setYWithHitbox(e.getHitbox().y - getHitbox().height-1);
+					
+					
 				}
 				case DOWNRIGHT :
 				{
-					Point2D.Float dr = new Point2D.Float();
-					dr.setLocation(testHitbox.getMaxX(), testHitbox.getMaxY());
-
-					Point2D.Float ulOther = new Point2D.Float();
-					ulOther.setLocation(e.getHitbox().getMinX(), e.getHitbox().getMinY());
-
-					float xDist = Math.abs(dr.x - ulOther.x);
-					float yDist = Math.abs(dr.y - ulOther.y);
-
-					if(xDist > yDist)
-					{
-						setCanMoveDown(false);
-						setYWithHitbox(e.getHitbox().y - getHitbox().height);
-						break;
-					}
-					if(yDist > xDist)
+					
+					
+					testHitbox.setFrame(new Rectangle2D.Float(hitbox.x, hitbox.y + yVel, (float)getHitbox().getWidth(), (float)getHitbox().getHeight()));
+					if(!testHitbox.intersects(e.getHitbox()))
 					{
 						setCanMoveRight(false);
 						setXWithHitbox(e.getX() - getHitbox().width);
 						break;
 					}
+					
+					testHitbox.setFrame(new Rectangle2D.Float(hitbox.x + xVel, hitbox.y, (float)getHitbox().getWidth(), (float)getHitbox().getHeight()));
+					if(!testHitbox.intersects(e.getHitbox()))
+					{
+						setCanMoveDown(false);
+						setYWithHitbox(e.getHitbox().y - getHitbox().height-1);
+						break;
+					}
 					setCanMoveRight(false);
 					setXWithHitbox(e.getX() - getHitbox().width);
-					setYWithHitbox(e.getHitbox().y - getHitbox().height);
+					setCanMoveDown(false);
+					setYWithHitbox(e.getHitbox().y - getHitbox().height-1);
 					break;
 				}
 
 				case UPLEFT :
 				{
-					Point2D.Float ul = new Point2D.Float();
-					ul.setLocation(testHitbox.getMinX(), testHitbox.getMinY());
-
-					Point2D.Float drOther = new Point2D.Float();
-					drOther.setLocation(e.getHitbox().getMaxX(), e.getHitbox().getMaxY());
-
-					float xDist = Math.abs(ul.x - drOther.x);
-					float yDist = Math.abs(ul.y - drOther.y);
-
-					if(xDist < yDist)
+					
+					
+					testHitbox.setFrame(new Rectangle2D.Float(hitbox.x, hitbox.y + yVel, (float)getHitbox().getWidth(), (float)getHitbox().getHeight()));
+					if(!testHitbox.intersects(e.getHitbox()))
 					{
 						setCanMoveLeft(false);
 						setXWithHitbox(e.getX() + e.getHitbox().width);
 						break;
 					}
-					if(yDist < xDist)
+					
+					testHitbox.setFrame(new Rectangle2D.Float(hitbox.x + xVel, hitbox.y, (float)getHitbox().getWidth(), (float)getHitbox().getHeight()));
+					if(!testHitbox.intersects(e.getHitbox()))
 					{
 						setCanMoveUp(false);
-						setYWithHitbox(e.getY() + e.getHitbox().height);
+						setYWithHitbox(e.getY() + e.getHitbox().height+1);
 						break;
 					}
 					setCanMoveLeft(false);
 					setXWithHitbox(e.getX() + e.getHitbox().width);
-					setYWithHitbox(e.getY() + e.getHitbox().height);
+					setCanMoveUp(false);
+					setYWithHitbox(e.getY() + e.getHitbox().height+1);
 					break;
-
+					
 				}
 				case UPRIGHT:
 				{
-					Point2D.Float ur = new Point2D.Float();
-					ur.setLocation(testHitbox.getMaxX(), testHitbox.getMinY());
-
-					Point2D.Float dlOther = new Point2D.Float();
-					dlOther.setLocation(e.getHitbox().getMinX(), e.getHitbox().getMaxY());
-
-					float xDist = Math.abs(ur.x - dlOther.x);
-					float yDist = Math.abs(ur.y - dlOther.y);
-
-					if(xDist < yDist)
+					
+					testHitbox.setFrame(new Rectangle2D.Float(hitbox.x, hitbox.y + yVel, (float)getHitbox().getWidth(), (float)getHitbox().getHeight()));
+					if(!testHitbox.intersects(e.getHitbox()))
 					{
 						setCanMoveRight(false);
 						setXWithHitbox(e.getX() - getHitbox().width);
 						break;
 					}
-					if(yDist < xDist)
+					
+					testHitbox.setFrame(new Rectangle2D.Float(hitbox.x + xVel, hitbox.y, (float)getHitbox().getWidth(), (float)getHitbox().getHeight()));
+					if(!testHitbox.intersects(e.getHitbox()))
 					{
 						setCanMoveUp(false);
-						setYWithHitbox(e.getY() + e.getHitbox().height);
+						setYWithHitbox(e.getY() + e.getHitbox().height+1);
 						break;
 					}
 					setCanMoveRight(false);
 					setXWithHitbox(e.getX() - getHitbox().width);
-					setYWithHitbox(e.getY() + e.getHitbox().height);
+					setCanMoveUp(false);
+					setYWithHitbox(e.getY() + e.getHitbox().height+1);
 					break;
-
+					
 				}
 
 				default:
