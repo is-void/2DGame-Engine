@@ -8,12 +8,6 @@ A basic 2D game Engine including :
 -A Sprite system.
 -A tile collison system.
 -A Chunk Loading System.
-
-Future additions
--A Game State system
--A Menu System
--A Sound System
--A Player State System
--Raycasting to the mouse pointer with collision detection
-
-
+-Basic Menu Systems
+-Customizable Resolution
+-and more
